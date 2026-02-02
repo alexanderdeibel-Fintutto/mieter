@@ -2,8 +2,23 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+// Auth Pages
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+// Protected Pages
+import Dashboard from "./pages/Dashboard";
+import Finanzen from "./pages/Finanzen";
+import Chat from "./pages/Chat";
+import Mehr from "./pages/Mehr";
+import MangelMelden from "./pages/MangelMelden";
+import ZaehlerAblesen from "./pages/ZaehlerAblesen";
+import DokumentAnfragen from "./pages/DokumentAnfragen";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -14,11 +29,27 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/registrieren" element={<Register />} />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/finanzen" element={<Finanzen />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/mehr" element={<Mehr />} />
+              <Route path="/mangel-melden" element={<MangelMelden />} />
+              <Route path="/zaehler-ablesen" element={<ZaehlerAblesen />} />
+              <Route path="/dokument-anfragen" element={<DokumentAnfragen />} />
+            </Route>
+
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
