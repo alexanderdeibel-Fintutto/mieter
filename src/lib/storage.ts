@@ -60,7 +60,7 @@ export async function uploadImage(
     });
 
   if (error) {
-    console.error("Upload error:", error);
+    if (import.meta.env.DEV) console.error("Upload error:", error);
     throw new Error("Fehler beim Hochladen der Datei. Bitte versuchen Sie es erneut.");
   }
 
@@ -70,7 +70,7 @@ export async function uploadImage(
     .createSignedUrl(data.path, 3600); // 1 hour expiration
 
   if (urlError || !urlData) {
-    console.error("Signed URL error:", urlError);
+    if (import.meta.env.DEV) console.error("Signed URL error:", urlError);
     throw new Error("Fehler beim Erstellen der Bild-URL.");
   }
 
@@ -99,7 +99,7 @@ export async function getSignedImageUrl(
     .createSignedUrl(path, expiresIn);
 
   if (error) {
-    console.error("Signed URL error:", error);
+    if (import.meta.env.DEV) console.error("Signed URL error:", error);
     return null;
   }
 
@@ -118,7 +118,7 @@ export async function deleteImage(
   const { error } = await supabase.storage.from(bucket).remove([path]);
 
   if (error) {
-    console.error("Delete error:", error);
+    if (import.meta.env.DEV) console.error("Delete error:", error);
     throw new Error("Fehler beim Löschen der Datei.");
   }
 }

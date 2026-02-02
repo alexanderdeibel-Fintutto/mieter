@@ -74,7 +74,7 @@ export default function DokumentAnfragen() {
       });
 
       if (insertError) {
-        console.error("Insert error:", insertError);
+        if (import.meta.env.DEV) console.error("Insert error:", insertError);
         throw new Error("Fehler beim Speichern der Anfrage.");
       }
 
@@ -86,7 +86,7 @@ export default function DokumentAnfragen() {
 
       navigate("/");
     } catch (error) {
-      console.error("Submit error:", error);
+      if (import.meta.env.DEV) console.error("Submit error:", error);
       toast({
         variant: "destructive",
         title: "Fehler",

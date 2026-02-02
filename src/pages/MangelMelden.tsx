@@ -105,7 +105,7 @@ export default function MangelMelden() {
           const uploadResult = await uploadImage(formData.image, "issue-images", user.id);
           imageUrl = uploadResult.path;
         } catch (uploadError) {
-          console.error("Image upload error:", uploadError);
+          if (import.meta.env.DEV) console.error("Image upload error:", uploadError);
           toast({
             variant: "destructive",
             title: "Bild-Upload fehlgeschlagen",
@@ -127,7 +127,7 @@ export default function MangelMelden() {
       });
 
       if (insertError) {
-        console.error("Insert error:", insertError);
+        if (import.meta.env.DEV) console.error("Insert error:", insertError);
         throw new Error("Fehler beim Speichern des Mangels.");
       }
 
@@ -138,7 +138,7 @@ export default function MangelMelden() {
 
       navigate("/");
     } catch (error) {
-      console.error("Submit error:", error);
+      if (import.meta.env.DEV) console.error("Submit error:", error);
       toast({
         variant: "destructive",
         title: "Fehler",

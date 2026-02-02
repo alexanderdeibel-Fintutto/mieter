@@ -30,11 +30,26 @@ export default function Register() {
       return;
     }
 
-    if (password.length < 6) {
+    // Password strength validation (minimum 8 characters with complexity)
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    
+    if (!hasMinLength) {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        description: "Das Passwort muss mindestens 8 Zeichen lang sein.",
+      });
+      return;
+    }
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Zahl enthalten.",
       });
       return;
     }

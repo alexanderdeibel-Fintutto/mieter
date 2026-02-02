@@ -119,7 +119,7 @@ export default function ZaehlerAblesen() {
           const uploadResult = await uploadImage(formData.image, "meter-images", user.id);
           imageUrl = uploadResult.path;
         } catch (uploadError) {
-          console.error("Image upload error:", uploadError);
+          if (import.meta.env.DEV) console.error("Image upload error:", uploadError);
           toast({
             variant: "destructive",
             title: "Bild-Upload fehlgeschlagen",
@@ -141,7 +141,7 @@ export default function ZaehlerAblesen() {
       });
 
       if (insertError) {
-        console.error("Insert error:", insertError);
+        if (import.meta.env.DEV) console.error("Insert error:", insertError);
         throw new Error("Fehler beim Speichern des Zählerstands.");
       }
 
@@ -152,7 +152,7 @@ export default function ZaehlerAblesen() {
 
       navigate("/");
     } catch (error) {
-      console.error("Submit error:", error);
+      if (import.meta.env.DEV) console.error("Submit error:", error);
       toast({
         variant: "destructive",
         title: "Fehler",
