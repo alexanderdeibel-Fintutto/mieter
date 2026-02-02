@@ -18,6 +18,8 @@ import Mehr from "./pages/Mehr";
 import MangelMelden from "./pages/MangelMelden";
 import ZaehlerAblesen from "./pages/ZaehlerAblesen";
 import DokumentAnfragen from "./pages/DokumentAnfragen";
+import Pricing from "./pages/Pricing";
+import Success from "./pages/Success";
 
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +36,10 @@ const App = () => (
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/registrieren" element={<Register />} />
+
+            {/* Public Routes */}
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/success" element={<Success />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
