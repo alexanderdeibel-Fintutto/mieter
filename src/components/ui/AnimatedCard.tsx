@@ -1,0 +1,44 @@
+import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { Card } from "./card";
+
+interface AnimatedCardProps {
+  children: ReactNode;
+  delay?: number;
+  accentColor?: "primary" | "mint" | "coral" | "sky" | "amber";
+  hover?: boolean;
+  className?: string;
+}
+
+const accentBorders: Record<string, string> = {
+  primary: "hover:border-primary/30",
+  mint: "hover:border-mint/30",
+  coral: "hover:border-coral/30",
+  sky: "hover:border-sky/30",
+  amber: "hover:border-amber/30",
+};
+
+export function AnimatedCard({
+  children,
+  delay = 0,
+  accentColor,
+  hover = true,
+  className,
+}: AnimatedCardProps) {
+  return (
+    <Card
+      className={cn(
+        "animate-slide-up shadow-lg border transition-all duration-300",
+        hover && "hover:shadow-xl hover:-translate-y-0.5",
+        accentColor && accentBorders[accentColor],
+        className
+      )}
+      style={{
+        animationDelay: `${delay}ms`,
+        animationFillMode: "both",
+      }}
+    >
+      {children}
+    </Card>
+  );
+}

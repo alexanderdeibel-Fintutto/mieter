@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -17,6 +19,38 @@ export default function Register() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Password strength calculation
+  const passwordStrength = useMemo(() => {
+    let score = 0;
+    const checks = {
+      length: password.length >= 8,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    
+    if (checks.length) score++;
+    if (checks.upper) score++;
+    if (checks.lower) score++;
+    if (checks.number) score++;
+    if (checks.special) score++;
+    
+    return { score, checks };
+  }, [password]);
+
+  const getStrengthColor = () => {
+    if (passwordStrength.score <= 2) return "bg-destructive";
+    if (passwordStrength.score <= 3) return "bg-warning";
+    return "bg-success";
+  };
+
+  const getStrengthLabel = () => {
+    if (passwordStrength.score <= 2) return "Schwach";
+    if (passwordStrength.score <= 3) return "Mittel";
+    return "Stark";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,13 +64,7 @@ export default function Register() {
       return;
     }
 
-    // Password strength validation (minimum 8 characters with complexity)
-    const hasMinLength = password.length >= 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    
-    if (!hasMinLength) {
+    if (!passwordStrength.checks.length) {
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -45,7 +73,7 @@ export default function Register() {
       return;
     }
 
-    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+    if (!passwordStrength.checks.upper || !passwordStrength.checks.lower || !passwordStrength.checks.number) {
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -76,19 +104,26 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl text-white font-bold">F</span>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background relative overflow-hidden">
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-secondary/10 blur-3xl animate-float" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full bg-coral/5 blur-3xl animate-pulse-soft" />
+      </div>
+
+      <div className="w-full max-w-sm relative z-10">
+        {/* Logo/Header with animation */}
+        <div className="text-center mb-6 animate-slide-up">
+          <div className="w-20 h-20 gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-primary/30 animate-float">
+            <span className="text-4xl text-white font-bold">F</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">Fintutto Mieter</h1>
           <p className="text-muted-foreground mt-1">Neues Konto erstellen</p>
         </div>
 
-        <Card>
-          <CardHeader className="space-y-1">
+        <AnimatedCard delay={100}>
+          <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl">Registrieren</CardTitle>
             <CardDescription>
               Erstellen Sie Ihr Mieter-Konto
@@ -105,6 +140,7 @@ export default function Register() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  className="h-12 transition-all focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div className="space-y-2">
@@ -116,6 +152,7 @@ export default function Register() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-12 transition-all focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div className="space-y-2">
@@ -127,7 +164,34 @@ export default function Register() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-12 transition-all focus:ring-2 focus:ring-primary/20"
                 />
+                {/* Password strength indicator */}
+                {password.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={cn("h-full transition-all duration-300", getStrengthColor())}
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className={cn(
+                        "text-xs font-medium",
+                        passwordStrength.score <= 2 ? "text-destructive" : 
+                        passwordStrength.score <= 3 ? "text-warning" : "text-success"
+                      )}>
+                        {getStrengthLabel()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <RequirementItem met={passwordStrength.checks.length} label="Mind. 8 Zeichen" />
+                      <RequirementItem met={passwordStrength.checks.upper} label="Großbuchstabe" />
+                      <RequirementItem met={passwordStrength.checks.lower} label="Kleinbuchstabe" />
+                      <RequirementItem met={passwordStrength.checks.number} label="Zahl" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
@@ -138,12 +202,22 @@ export default function Register() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  className={cn(
+                    "h-12 transition-all focus:ring-2 focus:ring-primary/20",
+                    confirmPassword && password !== confirmPassword && "border-destructive focus:ring-destructive/20"
+                  )}
                 />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <X className="h-3 w-3" />
+                    Passwörter stimmen nicht überein
+                  </p>
+                )}
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20" disabled={loading}>
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Wird erstellt...
                   </>
                 ) : (
@@ -154,13 +228,25 @@ export default function Register() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Bereits ein Konto? </span>
-              <Link to="/login" className="text-primary hover:underline font-medium">
+              <Link to="/login" className="text-primary hover:underline font-semibold">
                 Anmelden
               </Link>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
+    </div>
+  );
+}
+
+function RequirementItem({ met, label }: { met: boolean; label: string }) {
+  return (
+    <div className={cn(
+      "flex items-center gap-1.5 transition-colors",
+      met ? "text-success" : "text-muted-foreground"
+    )}>
+      {met ? <Check className="h-3 w-3" /> : <span className="w-3 h-3 rounded-full border border-current" />}
+      <span>{label}</span>
     </div>
   );
 }

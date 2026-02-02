@@ -1,34 +1,44 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { IconBadge } from "@/components/ui/IconBadge";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Droplet, Zap, Flame, Wind, DoorOpen, AlertTriangle, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { issueSchema, type IssueFormData } from "@/lib/validation";
+import { issueSchema } from "@/lib/validation";
 import { uploadImage } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
 
-const categories = [
-  { value: "sanitaer", label: "Sanitär" },
-  { value: "elektrik", label: "Elektrik" },
-  { value: "heizung", label: "Heizung" },
-  { value: "fenster_tueren", label: "Fenster & Türen" },
-  { value: "wasserschaden", label: "Wasserschaden" },
-  { value: "schimmel", label: "Schimmel" },
-  { value: "sonstiges", label: "Sonstiges" },
+interface CategoryItem {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+  color: "primary" | "secondary" | "mint" | "coral" | "sky" | "amber" | "warning" | "info";
+}
+
+const categories: CategoryItem[] = [
+  { value: "sanitaer", label: "Sanitär", icon: Droplet, color: "sky" },
+  { value: "elektrik", label: "Elektrik", icon: Zap, color: "amber" },
+  { value: "heizung", label: "Heizung", icon: Flame, color: "coral" },
+  { value: "fenster_tueren", label: "Fenster & Türen", icon: DoorOpen, color: "mint" },
+  { value: "wasserschaden", label: "Wasserschaden", icon: AlertTriangle, color: "info" },
+  { value: "schimmel", label: "Schimmel", icon: Wind, color: "secondary" },
+  { value: "sonstiges", label: "Sonstiges", icon: HelpCircle, color: "primary" },
 ];
 
 const priorities = [
   { value: "niedrig", label: "Niedrig", color: "bg-success" },
   { value: "mittel", label: "Mittel", color: "bg-warning" },
-  { value: "hoch", label: "Hoch", color: "bg-destructive" },
+  { value: "hoch", label: "Hoch", color: "bg-coral" },
   { value: "notfall", label: "Notfall", color: "bg-destructive animate-pulse" },
 ];
 
@@ -71,7 +81,6 @@ export default function MangelMelden() {
       return;
     }
 
-    // Validate form data with Zod schema
     const validationResult = issueSchema.safeParse({
       category: formData.category,
       description: formData.description,
@@ -99,7 +108,6 @@ export default function MangelMelden() {
     try {
       let imageUrl: string | null = null;
 
-      // Upload image if provided
       if (formData.image) {
         try {
           const uploadResult = await uploadImage(formData.image, "issue-images", user.id);
@@ -116,7 +124,6 @@ export default function MangelMelden() {
         }
       }
 
-      // Insert issue into database with validated data
       const { error: insertError } = await supabase.from("issues").insert({
         user_id: user.id,
         category: validationResult.data.category,
@@ -149,52 +156,75 @@ export default function MangelMelden() {
     }
   };
 
+  const selectedCategory = categories.find(c => c.value === formData.category);
+
   return (
     <MobileLayout showNav={false}>
       {/* Header */}
-      <div className="gradient-primary px-4 pt-12 pb-6">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-white">
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-white">Mangel melden</h1>
-            <p className="text-white/80 text-sm">Beschreiben Sie das Problem</p>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-coral opacity-95" />
+        <div className="absolute inset-0 gradient-mesh opacity-30" />
+        <div className="relative px-4 pt-12 pb-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="text-white hover:bg-white/10 p-2 rounded-xl transition-colors -ml-2">
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-white">Mangel melden</h1>
+              <p className="text-white/80 text-sm">Beschreiben Sie das Problem</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 pb-8">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Category */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Kategorie *</CardTitle>
+          {/* Category Selection - Visual Grid */}
+          <AnimatedCard delay={0}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Kategorie wählen *</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select 
-                value={formData.category} 
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger className={validationErrors.category ? "border-destructive" : ""}>
-                  <SelectValue placeholder="Kategorie wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-3 gap-2">
+                {categories.map((cat) => {
+                  const Icon = cat.icon;
+                  const isSelected = formData.category === cat.value;
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, category: cat.value })}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200",
+                        isSelected 
+                          ? "border-primary bg-primary/5 scale-105" 
+                          : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      )}
+                    >
+                      <IconBadge 
+                        icon={Icon} 
+                        variant={cat.color}
+                        size="md"
+                        pulse={isSelected}
+                      />
+                      <span className={cn(
+                        "text-xs font-medium text-center leading-tight",
+                        isSelected ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
               {validationErrors.category && (
-                <p className="text-sm text-destructive mt-1">{validationErrors.category}</p>
+                <p className="text-sm text-destructive mt-2">{validationErrors.category}</p>
               )}
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* Description */}
-          <Card>
+          <AnimatedCard delay={100}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Beschreibung *</CardTitle>
             </CardHeader>
@@ -204,10 +234,13 @@ export default function MangelMelden() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className={validationErrors.description ? "border-destructive" : ""}
+                className={cn(
+                  "resize-none transition-all focus:ring-2 focus:ring-primary/20",
+                  validationErrors.description && "border-destructive"
+                )}
                 maxLength={2000}
               />
-              <div className="flex justify-between mt-1">
+              <div className="flex justify-between mt-2">
                 {validationErrors.description && (
                   <p className="text-sm text-destructive">{validationErrors.description}</p>
                 )}
@@ -216,49 +249,55 @@ export default function MangelMelden() {
                 </p>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          {/* Priority */}
-          <Card>
+          {/* Priority with visual slider */}
+          <AnimatedCard delay={200}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Dringlichkeit</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
-                {priorities.map((p) => (
-                  <Button
-                    key={p.value}
-                    type="button"
-                    variant={formData.priority === p.value ? "default" : "outline"}
-                    className={formData.priority === p.value ? "border-2 border-primary" : ""}
-                    onClick={() => setFormData({ ...formData, priority: p.value })}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${p.color} mr-2`} />
-                    {p.label}
-                  </Button>
-                ))}
+              <div className="grid grid-cols-4 gap-2">
+                {priorities.map((p) => {
+                  const isSelected = formData.priority === p.value;
+                  return (
+                    <Button
+                      key={p.value}
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "h-auto py-3 flex flex-col gap-1.5 transition-all",
+                        isSelected && "ring-2 ring-primary ring-offset-2"
+                      )}
+                      onClick={() => setFormData({ ...formData, priority: p.value })}
+                    >
+                      <span className={cn("w-4 h-4 rounded-full", p.color)} />
+                      <span className="text-xs">{p.label}</span>
+                    </Button>
+                  );
+                })}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          {/* Photo */}
-          <Card>
+          {/* Photo Upload */}
+          <AnimatedCard delay={300}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Foto (optional)</CardTitle>
             </CardHeader>
             <CardContent>
               {imagePreview ? (
-                <div className="relative">
+                <div className="relative rounded-xl overflow-hidden">
                   <img 
                     src={imagePreview} 
                     alt="Vorschau" 
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-48 object-cover"
                   />
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 shadow-lg"
                     onClick={() => {
                       setImagePreview(null);
                       setFormData({ ...formData, image: null });
@@ -270,10 +309,14 @@ export default function MangelMelden() {
               ) : (
                 <Label
                   htmlFor="image"
-                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
                 >
-                  <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">Foto aufnehmen oder hochladen</span>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-2 group-hover:bg-primary/10 transition-colors">
+                    <Camera className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors animate-pulse-soft" />
+                  </div>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    Foto aufnehmen oder hochladen
+                  </span>
                   <Input
                     id="image"
                     type="file"
@@ -285,13 +328,18 @@ export default function MangelMelden() {
                 </Label>
               )}
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-14 text-base font-semibold shadow-lg shadow-primary/20" 
+            size="lg" 
+            disabled={loading}
+          >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Wird gesendet...
               </>
             ) : (

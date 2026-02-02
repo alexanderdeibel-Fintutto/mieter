@@ -1,23 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Camera, Loader2, Zap, Flame, Droplets } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Zap, Flame, Droplets, Thermometer } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { meterReadingSchema, type MeterReadingFormData } from "@/lib/validation";
+import { meterReadingSchema } from "@/lib/validation";
 import { uploadImage } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
+import Confetti from "react-confetti";
 
-const meterTypes = [
-  { value: "strom", label: "Strom", icon: Zap, unit: "kWh", color: "bg-warning" },
-  { value: "gas", label: "Gas", icon: Flame, unit: "m³", color: "bg-destructive" },
-  { value: "kaltwasser", label: "Kaltwasser", icon: Droplets, unit: "m³", color: "bg-info" },
-  { value: "warmwasser", label: "Warmwasser", icon: Droplets, unit: "m³", color: "bg-destructive" },
+interface MeterType {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+  unit: string;
+  gradient: string;
+  bgColor: string;
+}
+
+const meterTypes: MeterType[] = [
+  { value: "strom", label: "Strom", icon: Zap, unit: "kWh", gradient: "gradient-amber", bgColor: "bg-amber/10" },
+  { value: "gas", label: "Gas", icon: Flame, unit: "m³", gradient: "gradient-coral", bgColor: "bg-coral/10" },
+  { value: "kaltwasser", label: "Kaltwasser", icon: Droplets, unit: "m³", gradient: "gradient-sky", bgColor: "bg-sky/10" },
+  { value: "warmwasser", label: "Warmwasser", icon: Thermometer, unit: "m³", gradient: "gradient-primary", bgColor: "bg-primary/10" },
 ];
 
 export default function ZaehlerAblesen() {
@@ -25,6 +38,7 @@ export default function ZaehlerAblesen() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     meterType: "",
@@ -74,7 +88,6 @@ export default function ZaehlerAblesen() {
 
     const numericValue = parseFloat(formData.value);
     
-    // Validate form data with Zod schema
     const validationResult = meterReadingSchema.safeParse({
       meter_type: formData.meterType,
       value: isNaN(numericValue) ? undefined : numericValue,
@@ -97,7 +110,6 @@ export default function ZaehlerAblesen() {
       return;
     }
 
-    // Additional business logic validation
     if (consumption !== null && consumption < 0) {
       setValidationErrors({ value: "Der neue Zählerstand kann nicht kleiner sein als der vorherige." });
       toast({
@@ -113,7 +125,6 @@ export default function ZaehlerAblesen() {
     try {
       let imageUrl: string | null = null;
 
-      // Upload image if provided
       if (formData.image) {
         try {
           const uploadResult = await uploadImage(formData.image, "meter-images", user.id);
@@ -130,7 +141,6 @@ export default function ZaehlerAblesen() {
         }
       }
 
-      // Insert meter reading into database with validated data
       const { error: insertError } = await supabase.from("meter_readings").insert({
         user_id: user.id,
         meter_type: validationResult.data.meter_type,
@@ -145,12 +155,17 @@ export default function ZaehlerAblesen() {
         throw new Error("Fehler beim Speichern des Zählerstands.");
       }
 
+      // Show confetti!
+      setShowConfetti(true);
+      
       toast({
-        title: "Zählerstand übermittelt",
+        title: "🎉 Zählerstand übermittelt!",
         description: `${selectedMeter?.label}-Zählerstand wurde erfolgreich gespeichert.`,
       });
 
-      navigate("/");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (error) {
       if (import.meta.env.DEV) console.error("Submit error:", error);
       toast({
@@ -165,68 +180,94 @@ export default function ZaehlerAblesen() {
 
   return (
     <MobileLayout showNav={false}>
+      {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
+      
       {/* Header */}
-      <div className="gradient-primary px-4 pt-12 pb-6">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-white">
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-white">Zähler ablesen</h1>
-            <p className="text-white/80 text-sm">Zählerstand eingeben</p>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-mint opacity-95" />
+        <div className="absolute inset-0 gradient-mesh opacity-30" />
+        <div className="relative px-4 pt-12 pb-6">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="text-white hover:bg-white/10 p-2 rounded-xl transition-colors -ml-2">
+              <ArrowLeft className="h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-white">Zähler ablesen</h1>
+              <p className="text-white/80 text-sm">Zählerstand eingeben</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 pb-8">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Meter Type Selection */}
-          <Card>
-            <CardHeader className="pb-2">
+          {/* Meter Type Selection - Colorful Cards */}
+          <AnimatedCard delay={0}>
+            <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Zählertyp wählen *</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {meterTypes.map((meter) => {
                   const Icon = meter.icon;
                   const isSelected = formData.meterType === meter.value;
                   return (
-                    <Button
+                    <button
                       key={meter.value}
                       type="button"
-                      variant={isSelected ? "default" : "outline"}
-                      className={`h-auto py-3 flex flex-col items-center gap-1 ${isSelected ? "" : ""}`}
                       onClick={() => setFormData({ ...formData, meterType: meter.value, value: "" })}
+                      className={cn(
+                        "relative flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden",
+                        isSelected 
+                          ? "border-primary scale-105 shadow-lg" 
+                          : "border-border hover:border-primary/30 hover:shadow-md"
+                      )}
                     >
-                      <div className={`w-8 h-8 rounded-full ${meter.color} flex items-center justify-center`}>
-                        <Icon className="h-4 w-4 text-white" />
+                      {/* Background gradient when selected */}
+                      {isSelected && (
+                        <div className={cn("absolute inset-0 opacity-10", meter.gradient)} />
+                      )}
+                      <div className={cn(
+                        "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative z-10 transition-all",
+                        isSelected ? meter.gradient : meter.bgColor,
+                        isSelected && "animate-bounce-in"
+                      )}>
+                        <Icon className={cn("h-7 w-7", isSelected ? "text-white" : "text-foreground")} />
                       </div>
-                      <span className="text-sm">{meter.label}</span>
-                    </Button>
+                      <div className="relative z-10 text-center">
+                        <span className={cn(
+                          "font-semibold block",
+                          isSelected ? "text-primary" : "text-foreground"
+                        )}>
+                          {meter.label}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{meter.unit}</span>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* Previous Reading & Input */}
           {formData.meterType && (
-            <Card>
+            <AnimatedCard delay={100}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Zählerstand eingeben *</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Previous Reading */}
-                <div className="p-3 bg-muted rounded-lg">
+                <div className={cn("p-4 rounded-xl", selectedMeter?.bgColor)}>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Vorheriger Stand:</span>
-                    <span className="font-medium">
+                    <span className="font-bold text-lg">
                       {previousValue?.toLocaleString('de-DE')} {selectedMeter?.unit}
                     </span>
                   </div>
                 </div>
 
-                {/* Current Reading Input */}
+                {/* Current Reading Input - Retro Style */}
                 <div className="space-y-2">
                   <Label htmlFor="value">Aktueller Zählerstand ({selectedMeter?.unit})</Label>
                   <Input
@@ -235,7 +276,10 @@ export default function ZaehlerAblesen() {
                     placeholder={`z.B. ${(previousValue || 0) + 100}`}
                     value={formData.value}
                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    className={`text-lg ${validationErrors.value || validationErrors.meter_type ? "border-destructive" : ""}`}
+                    className={cn(
+                      "h-16 text-2xl font-mono text-center tracking-widest transition-all focus:ring-2 focus:ring-primary/20",
+                      validationErrors.value || validationErrors.meter_type ? "border-destructive" : ""
+                    )}
                     min="0"
                     step="0.001"
                   />
@@ -244,39 +288,39 @@ export default function ZaehlerAblesen() {
                   )}
                 </div>
 
-                {/* Calculated Consumption */}
+                {/* Calculated Consumption with animation */}
                 {consumption !== null && consumption >= 0 && (
-                  <div className="p-3 bg-success/10 rounded-lg border border-success/20">
+                  <div className="p-4 rounded-xl bg-success/10 border border-success/20 animate-scale-in">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-success">Verbrauch seit letzter Ablesung:</span>
-                      <span className="font-bold text-success">
+                      <span className="text-sm text-success font-medium">Verbrauch seit letzter Ablesung:</span>
+                      <span className="font-bold text-xl text-success animate-bounce-in">
                         {consumption.toLocaleString('de-DE')} {selectedMeter?.unit}
                       </span>
                     </div>
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           )}
 
-          {/* Photo */}
-          <Card>
+          {/* Photo Upload */}
+          <AnimatedCard delay={200}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Foto des Zählers (optional)</CardTitle>
             </CardHeader>
             <CardContent>
               {imagePreview ? (
-                <div className="relative">
+                <div className="relative rounded-xl overflow-hidden">
                   <img 
                     src={imagePreview} 
                     alt="Zähler Vorschau" 
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-48 object-cover"
                   />
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 shadow-lg"
                     onClick={() => {
                       setImagePreview(null);
                       setFormData({ ...formData, image: null });
@@ -288,10 +332,14 @@ export default function ZaehlerAblesen() {
               ) : (
                 <Label
                   htmlFor="image"
-                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors"
+                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group"
                 >
-                  <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">Zähler fotografieren</span>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-2 group-hover:bg-primary/10 transition-colors">
+                    <Camera className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors animate-pulse-soft" />
+                  </div>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    Zähler fotografieren
+                  </span>
                   <Input
                     id="image"
                     type="file"
@@ -303,18 +351,18 @@ export default function ZaehlerAblesen() {
                 </Label>
               )}
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* Submit Button */}
           <Button 
             type="submit" 
-            className="w-full" 
+            className="w-full h-14 text-base font-semibold shadow-lg shadow-primary/20" 
             size="lg" 
             disabled={loading || !formData.meterType || !formData.value}
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Wird gesendet...
               </>
             ) : (

@@ -46,6 +46,19 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
+    /* NEW: Extended Accent Colors */
+    --accent-mint: 158 64% 52%;
+    --accent-mint-foreground: 0 0% 100%;
+    
+    --accent-coral: 16 85% 66%;
+    --accent-coral-foreground: 0 0% 100%;
+    
+    --accent-sky: 199 89% 48%;
+    --accent-sky-foreground: 0 0% 100%;
+    
+    --accent-amber: 38 92% 50%;
+    --accent-amber-foreground: 0 0% 100%;
+
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 243 75% 59%;
@@ -54,6 +67,15 @@
 
     /* Hero Gradient */
     --gradient-primary: linear-gradient(135deg, hsl(243, 75%, 59%) 0%, hsl(263, 70%, 58%) 100%);
+    
+    /* NEW: Extended Gradients */
+    --gradient-mint: linear-gradient(135deg, hsl(158, 64%, 52%) 0%, hsl(168, 70%, 45%) 100%);
+    --gradient-coral: linear-gradient(135deg, hsl(16, 85%, 66%) 0%, hsl(6, 80%, 58%) 100%);
+    --gradient-sky: linear-gradient(135deg, hsl(199, 89%, 48%) 0%, hsl(209, 85%, 55%) 100%);
+    --gradient-amber: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(28, 90%, 45%) 100%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(243, 75%, 59%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(263, 70%, 58%) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(199, 89%, 48%) 0px, transparent 50%);
 
     /* Safe area for mobile */
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -102,6 +124,19 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
+    /* Dark mode accent colors */
+    --accent-mint: 158 64% 45%;
+    --accent-mint-foreground: 0 0% 100%;
+    
+    --accent-coral: 16 85% 58%;
+    --accent-coral-foreground: 0 0% 100%;
+    
+    --accent-sky: 199 89% 42%;
+    --accent-sky-foreground: 0 0% 100%;
+    
+    --accent-amber: 38 92% 45%;
+    --accent-amber-foreground: 0 0% 100%;
+
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 243 75% 59%;
@@ -134,7 +169,134 @@
 }
 
 @layer utilities {
+  /* Gradient utilities */
   .gradient-primary {
     background: var(--gradient-primary);
+  }
+  
+  .gradient-mint {
+    background: var(--gradient-mint);
+  }
+  
+  .gradient-coral {
+    background: var(--gradient-coral);
+  }
+  
+  .gradient-sky {
+    background: var(--gradient-sky);
+  }
+  
+  .gradient-amber {
+    background: var(--gradient-amber);
+  }
+  
+  .gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+
+  /* Glassmorphism utilities */
+  .glass {
+    @apply bg-white/70 dark:bg-black/50 backdrop-blur-xl;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/30;
+  }
+  
+  .glass-nav {
+    @apply bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl;
+  }
+}
+
+/* Custom keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }

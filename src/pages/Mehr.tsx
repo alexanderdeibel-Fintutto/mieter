@@ -1,5 +1,7 @@
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { IconBadge } from "@/components/ui/IconBadge";
+import { CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { 
@@ -10,20 +12,22 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  User
+  Edit3
 } from "lucide-react";
+
+const menuItems = [
+  { icon: Home, label: "Meine Wohnung", to: "/wohnung", description: "Adresse & Wohnungsdaten", color: "primary" as const },
+  { icon: FileText, label: "Dokumente", to: "/dokumente", description: "Mietvertrag, Abrechnungen", color: "sky" as const },
+  { icon: BookOpen, label: "Hausordnung", to: "/hausordnung", description: "Regeln & Informationen", color: "mint" as const },
+  { icon: Phone, label: "Notfallkontakte", to: "/notfallkontakte", description: "Wichtige Telefonnummern", color: "coral" as const },
+  { icon: Settings, label: "Einstellungen", to: "/einstellungen", description: "Profil & Benachrichtigungen", color: "amber" as const },
+];
 
 export default function Mehr() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-
-  const menuItems = [
-    { icon: Home, label: "Meine Wohnung", to: "/wohnung", description: "Adresse & Wohnungsdaten" },
-    { icon: FileText, label: "Dokumente", to: "/dokumente", description: "Mietvertrag, Abrechnungen" },
-    { icon: BookOpen, label: "Hausordnung", to: "/hausordnung", description: "Regeln & Informationen" },
-    { icon: Phone, label: "Notfallkontakte", to: "/notfallkontakte", description: "Wichtige Telefonnummern" },
-    { icon: Settings, label: "Einstellungen", to: "/einstellungen", description: "Profil & Benachrichtigungen" },
-  ];
+  const userName = user?.user_metadata?.name || "Mieter";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     await signOut();
@@ -32,68 +36,83 @@ export default function Mehr() {
 
   return (
     <MobileLayout>
-      {/* Header */}
-      <div className="gradient-primary px-4 pt-12 pb-8">
-        <h1 className="text-2xl font-bold text-white">Mehr</h1>
-        <p className="text-white/80 mt-1">Einstellungen & Informationen</p>
+      {/* Header with animated gradient */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-primary opacity-95" />
+        <div className="absolute inset-0 gradient-mesh opacity-30" />
+        <div className="relative px-4 pt-12 pb-8">
+          <h1 className="text-2xl font-bold text-white">Mehr</h1>
+          <p className="text-white/80 mt-1">Einstellungen & Informationen</p>
+        </div>
       </div>
 
-      <div className="px-4 -mt-4 space-y-4">
-        {/* User Info Card */}
-        <Card className="shadow-lg">
-          <CardContent className="p-4">
+      <div className="px-4 -mt-4 space-y-4 pb-4">
+        {/* User Profile Card */}
+        <AnimatedCard delay={0} accentColor="primary">
+          <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-7 w-7 text-primary" />
+              {/* Large avatar with gradient border */}
+              <div className="relative">
+                <div className="w-18 h-18 p-1 rounded-2xl gradient-primary">
+                  <div className="w-full h-full w-16 h-16 rounded-xl bg-card flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary">{userInitial}</span>
+                  </div>
+                </div>
+                {/* Edit button */}
+                <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-secondary flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                  <Edit3 className="h-3.5 w-3.5 text-white" />
+                </button>
               </div>
-              <div>
-                <p className="font-semibold text-lg">{user?.user_metadata?.name || "Mieter"}</p>
+              <div className="flex-1">
+                <p className="font-bold text-lg">{userName}</p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <span className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                  Aktiv
+                </span>
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
-        {/* Menu Items */}
-        <Card className="shadow divide-y">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.to} to={item.to}>
-                <CardContent className="p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-foreground" />
+        {/* Menu Items with colorful icons */}
+        <AnimatedCard delay={100}>
+          <div className="divide-y divide-border/50">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Link key={item.to} to={item.to}>
+                  <CardContent className="p-4 hover:bg-muted/30 transition-all duration-200 group">
+                    <div className="flex items-center gap-4">
+                      <IconBadge icon={Icon} variant={item.color} size="md" />
+                      <div className="flex-1">
+                        <p className="font-medium">{item.label}</p>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{item.label}</p>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Link>
-            );
-          })}
-        </Card>
+                  </CardContent>
+                </Link>
+              );
+            })}
+          </div>
+        </AnimatedCard>
 
         {/* Logout Button */}
-        <Card className="shadow">
+        <AnimatedCard delay={200}>
           <CardContent 
-            className="p-4 cursor-pointer hover:bg-destructive/5 transition-colors"
+            className="p-4 cursor-pointer hover:bg-destructive/5 transition-all duration-200 group"
             onClick={handleLogout}
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-                <LogOut className="h-5 w-5 text-destructive" />
-              </div>
+              <IconBadge icon={LogOut} variant="destructive" size="md" />
               <div className="flex-1">
                 <p className="font-medium text-destructive">Abmelden</p>
                 <p className="text-sm text-muted-foreground">Von Ihrem Konto abmelden</p>
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </MobileLayout>
   );
