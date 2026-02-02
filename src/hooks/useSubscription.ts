@@ -9,6 +9,7 @@ export interface SubscriptionData {
   stripe_customer_id: string | null;
 }
 
+// MieterApp Stripe Price IDs
 export const PLANS = {
   free: {
     name: "Free",
@@ -22,25 +23,17 @@ export const PLANS = {
     name: "Basic",
     price_monthly: 9.99,
     price_yearly: 95.88, // 20% Rabatt
-    price_id_monthly: "price_1SwKRw52lqSgjCzebwjNKzuN",
+    price_id_monthly: "price_1SsEqV52lqSgjCzeKuUQGBOE",
     price_id_yearly: null, // Kann später hinzugefügt werden
-    product_id: "prod_Tu8jQ696XFDJQU",
+    product_id: null, // Will be determined from subscription
   },
   pro: {
     name: "Pro",
     price_monthly: 19.99,
     price_yearly: 191.88,
-    price_id_monthly: "price_1SwKSV52lqSgjCzehC6bwlVE",
+    price_id_monthly: "price_1SsEr552lqSgjCzeBvWBTzKS",
     price_id_yearly: null,
-    product_id: "prod_Tu8jsjz4Cr58aU",
-  },
-  business: {
-    name: "Business",
-    price_monthly: 49.99,
-    price_yearly: 479.88,
-    price_id_monthly: "price_1SwKUU52lqSgjCzeeUb4H2jI",
-    price_id_yearly: null,
-    product_id: "prod_Tu8mzwwj2k4GMu",
+    product_id: null, // Will be determined from subscription
   },
 } as const;
 
@@ -102,8 +95,8 @@ export function useSubscription() {
   }, [user, checkSubscription]);
 
   const plan = (subscription?.plan_id as PlanId) || "free";
-  const isPro = ["pro", "business"].includes(plan);
-  const isBusiness = plan === "business";
+  const isPro = plan === "pro";
+  const isBasic = plan === "basic";
   const isActive = subscription?.subscribed || plan === "free";
 
   return {
@@ -112,7 +105,7 @@ export function useSubscription() {
     error,
     plan,
     isPro,
-    isBusiness,
+    isBasic,
     isActive,
     checkSubscription,
   };

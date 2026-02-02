@@ -12,11 +12,10 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Product to plan mapping
-const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_Tu8jQ696XFDJQU": "basic",
-  "prod_Tu8jsjz4Cr58aU": "pro",
-  "prod_Tu8mzwwj2k4GMu": "business",
+// MieterApp Price ID to plan mapping
+const PRICE_TO_PLAN: Record<string, string> = {
+  "price_1SsEqV52lqSgjCzeKuUQGBOE": "basic",
+  "price_1SsEr552lqSgjCzeBvWBTzKS": "pro",
 };
 
 serve(async (req) => {
@@ -82,12 +81,13 @@ serve(async (req) => {
       stripeSubscriptionId = subscription.id;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       
-      const productId = subscription.items.data[0].price.product as string;
-      planId = PRODUCT_TO_PLAN[productId] || "free";
+      // Get plan from price ID
+      const priceId = subscription.items.data[0].price.id;
+      planId = PRICE_TO_PLAN[priceId] || "free";
       
       logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
-        productId,
+        priceId,
         planId,
         endDate: subscriptionEnd 
       });

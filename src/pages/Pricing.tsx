@@ -30,13 +30,6 @@ const PLAN_FEATURES: Record<PlanId, string[]> = {
     "Chat mit Hausverwaltung",
     "Automatische Erinnerungen",
   ],
-  business: [
-    "Alles aus Pro",
-    "API-Zugang",
-    "Dedizierter Account Manager",
-    "Custom Integrationen",
-    "SLA Garantie",
-  ],
 };
 
 export default function Pricing() {
@@ -118,7 +111,7 @@ export default function Pricing() {
     }
   };
 
-  const PLAN_ORDER: PlanId[] = ["free", "basic", "pro", "business"];
+  const PLAN_ORDER: PlanId[] = ["free", "basic", "pro"];
 
   const getButtonProps = (planId: PlanId) => {
     if (!user) {
