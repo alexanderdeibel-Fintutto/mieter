@@ -64,13 +64,46 @@ export async function uploadImage(
     throw new Error("Fehler beim Hochladen der Datei. Bitte versuchen Sie es erneut.");
   }
 
-  // Get the public URL
-  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+  // Get a signed URL for private bucket access (expires in 1 hour)
+  const { data: urlData, error: urlError } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(data.path, 3600); // 1 hour expiration
+
+  if (urlError || !urlData) {
+    console.error("Signed URL error:", urlError);
+    throw new Error("Fehler beim Erstellen der Bild-URL.");
+  }
 
   return {
     path: data.path,
-    url: urlData.publicUrl,
+    url: urlData.signedUrl,
   };
+}
+
+/**
+ * Gets a signed URL for an image in private storage
+ * @param path - The file path in storage
+ * @param bucket - The storage bucket name
+ * @param expiresIn - URL expiration time in seconds (default: 1 hour)
+ * @returns The signed URL or null if error
+ */
+export async function getSignedImageUrl(
+  path: string,
+  bucket: "issue-images" | "meter-images",
+  expiresIn: number = 3600
+): Promise<string | null> {
+  if (!path) return null;
+  
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(path, expiresIn);
+
+  if (error) {
+    console.error("Signed URL error:", error);
+    return null;
+  }
+
+  return data.signedUrl;
 }
 
 /**
