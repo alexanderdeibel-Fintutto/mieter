@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2, FileText, Receipt, Home, FileCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { documentRequestSchema, type DocumentRequestFormData } from "@/lib/validation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const documentTypes = [
   { value: "mietbescheinigung", label: "Mietbescheinigung", icon: FileText, description: "Für Behörden & Arbeitgeber" },
@@ -18,35 +21,80 @@ const documentTypes = [
 export default function DokumentAnfragen() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [selectedType, setSelectedType] = useState("");
   const [notes, setNotes] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedType) {
+    setValidationErrors({});
+
+    if (!user) {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte wählen Sie einen Dokumenttyp aus.",
+        description: "Sie müssen angemeldet sein, um ein Dokument anzufordern.",
+      });
+      return;
+    }
+
+    // Validate form data with Zod schema
+    const validationResult = documentRequestSchema.safeParse({
+      document_type: selectedType || undefined,
+      notes: notes || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      validationResult.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setValidationErrors(errors);
+      toast({
+        variant: "destructive",
+        title: "Validierungsfehler",
+        description: validationResult.error.errors[0]?.message || "Bitte überprüfen Sie Ihre Eingaben.",
       });
       return;
     }
 
     setLoading(true);
 
-    // TODO: Submit to Supabase / send notification
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Insert document request into database with validated data
+      const { error: insertError } = await supabase.from("documents").insert({
+        user_id: user.id,
+        title: documentTypes.find(d => d.value === validationResult.data.document_type)?.label || validationResult.data.document_type,
+        document_type: validationResult.data.document_type,
+        content_json: validationResult.data.notes ? { notes: validationResult.data.notes } : null,
+      });
 
-    const selectedDoc = documentTypes.find(d => d.value === selectedType);
-    toast({
-      title: "Dokument angefordert",
-      description: `Ihre Anfrage für "${selectedDoc?.label}" wurde übermittelt.`,
-    });
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Fehler beim Speichern der Anfrage.");
+      }
 
-    navigate("/");
-    setLoading(false);
+      const selectedDoc = documentTypes.find(d => d.value === selectedType);
+      toast({
+        title: "Dokument angefordert",
+        description: `Ihre Anfrage für "${selectedDoc?.label}" wurde übermittelt.`,
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: error instanceof Error ? error.message : "Ein Fehler ist aufgetreten.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -111,7 +159,17 @@ export default function DokumentAnfragen() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
+                maxLength={500}
+                className={validationErrors.notes ? "border-destructive" : ""}
               />
+              <div className="flex justify-between mt-1">
+                {validationErrors.notes && (
+                  <p className="text-sm text-destructive">{validationErrors.notes}</p>
+                )}
+                <p className="text-xs text-muted-foreground ml-auto">
+                  {notes.length}/500
+                </p>
+              </div>
             </CardContent>
           </Card>
 

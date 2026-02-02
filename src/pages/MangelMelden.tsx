@@ -10,6 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Camera, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { issueSchema, type IssueFormData } from "@/lib/validation";
+import { uploadImage } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
   { value: "sanitaer", label: "Sanitär" },
@@ -31,7 +35,9 @@ const priorities = [
 export default function MangelMelden() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     category: "",
     description: "",
@@ -54,28 +60,93 @@ export default function MangelMelden() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.category || !formData.description) {
+    setValidationErrors({});
+
+    if (!user) {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte füllen Sie alle Pflichtfelder aus.",
+        description: "Sie müssen angemeldet sein, um einen Mangel zu melden.",
+      });
+      return;
+    }
+
+    // Validate form data with Zod schema
+    const validationResult = issueSchema.safeParse({
+      category: formData.category,
+      description: formData.description,
+      priority: formData.priority,
+    });
+
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      validationResult.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setValidationErrors(errors);
+      toast({
+        variant: "destructive",
+        title: "Validierungsfehler",
+        description: "Bitte überprüfen Sie Ihre Eingaben.",
       });
       return;
     }
 
     setLoading(true);
 
-    // TODO: Submit to Supabase
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      let imageUrl: string | null = null;
 
-    toast({
-      title: "Mangel gemeldet",
-      description: "Ihre Meldung wurde erfolgreich übermittelt.",
-    });
+      // Upload image if provided
+      if (formData.image) {
+        try {
+          const uploadResult = await uploadImage(formData.image, "issue-images", user.id);
+          imageUrl = uploadResult.path;
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          toast({
+            variant: "destructive",
+            title: "Bild-Upload fehlgeschlagen",
+            description: uploadError instanceof Error ? uploadError.message : "Fehler beim Hochladen des Bildes.",
+          });
+          setLoading(false);
+          return;
+        }
+      }
 
-    navigate("/");
-    setLoading(false);
+      // Insert issue into database with validated data
+      const { error: insertError } = await supabase.from("issues").insert({
+        user_id: user.id,
+        category: validationResult.data.category,
+        description: validationResult.data.description,
+        priority: validationResult.data.priority,
+        image_url: imageUrl,
+        status: "offen",
+      });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Fehler beim Speichern des Mangels.");
+      }
+
+      toast({
+        title: "Mangel gemeldet",
+        description: "Ihre Meldung wurde erfolgreich übermittelt.",
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: error instanceof Error ? error.message : "Ein Fehler ist aufgetreten.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -105,7 +176,7 @@ export default function MangelMelden() {
                 value={formData.category} 
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className={validationErrors.category ? "border-destructive" : ""}>
                   <SelectValue placeholder="Kategorie wählen" />
                 </SelectTrigger>
                 <SelectContent>
@@ -116,6 +187,9 @@ export default function MangelMelden() {
                   ))}
                 </SelectContent>
               </Select>
+              {validationErrors.category && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.category}</p>
+              )}
             </CardContent>
           </Card>
 
@@ -126,11 +200,21 @@ export default function MangelMelden() {
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Beschreiben Sie den Mangel detailliert..."
+                placeholder="Beschreiben Sie den Mangel detailliert (mind. 10 Zeichen)..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
+                className={validationErrors.description ? "border-destructive" : ""}
+                maxLength={2000}
               />
+              <div className="flex justify-between mt-1">
+                {validationErrors.description && (
+                  <p className="text-sm text-destructive">{validationErrors.description}</p>
+                )}
+                <p className="text-xs text-muted-foreground ml-auto">
+                  {formData.description.length}/2000
+                </p>
+              </div>
             </CardContent>
           </Card>
 

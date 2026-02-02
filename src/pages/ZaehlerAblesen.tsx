@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Camera, Loader2, Zap, Flame, Droplets } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { meterReadingSchema, type MeterReadingFormData } from "@/lib/validation";
+import { uploadImage } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 const meterTypes = [
   { value: "strom", label: "Strom", icon: Zap, unit: "kWh", color: "bg-warning" },
@@ -19,7 +23,9 @@ const meterTypes = [
 export default function ZaehlerAblesen() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     meterType: "",
     value: "",
@@ -55,17 +61,45 @@ export default function ZaehlerAblesen() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.meterType || !formData.value) {
+    setValidationErrors({});
+
+    if (!user) {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte wählen Sie einen Zählertyp und geben Sie den Stand ein.",
+        description: "Sie müssen angemeldet sein, um einen Zählerstand zu übermitteln.",
       });
       return;
     }
 
+    const numericValue = parseFloat(formData.value);
+    
+    // Validate form data with Zod schema
+    const validationResult = meterReadingSchema.safeParse({
+      meter_type: formData.meterType,
+      value: isNaN(numericValue) ? undefined : numericValue,
+      previous_value: previousValue ?? undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      validationResult.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setValidationErrors(errors);
+      toast({
+        variant: "destructive",
+        title: "Validierungsfehler",
+        description: "Bitte überprüfen Sie Ihre Eingaben.",
+      });
+      return;
+    }
+
+    // Additional business logic validation
     if (consumption !== null && consumption < 0) {
+      setValidationErrors({ value: "Der neue Zählerstand kann nicht kleiner sein als der vorherige." });
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -76,16 +110,57 @@ export default function ZaehlerAblesen() {
 
     setLoading(true);
 
-    // TODO: Submit to Supabase
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      let imageUrl: string | null = null;
 
-    toast({
-      title: "Zählerstand übermittelt",
-      description: `${selectedMeter?.label}-Zählerstand wurde erfolgreich gespeichert.`,
-    });
+      // Upload image if provided
+      if (formData.image) {
+        try {
+          const uploadResult = await uploadImage(formData.image, "meter-images", user.id);
+          imageUrl = uploadResult.path;
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          toast({
+            variant: "destructive",
+            title: "Bild-Upload fehlgeschlagen",
+            description: uploadError instanceof Error ? uploadError.message : "Fehler beim Hochladen des Bildes.",
+          });
+          setLoading(false);
+          return;
+        }
+      }
 
-    navigate("/");
-    setLoading(false);
+      // Insert meter reading into database with validated data
+      const { error: insertError } = await supabase.from("meter_readings").insert({
+        user_id: user.id,
+        meter_type: validationResult.data.meter_type,
+        value: validationResult.data.value,
+        previous_value: previousValue,
+        image_url: imageUrl,
+        source: "manual",
+      });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Fehler beim Speichern des Zählerstands.");
+      }
+
+      toast({
+        title: "Zählerstand übermittelt",
+        description: `${selectedMeter?.label}-Zählerstand wurde erfolgreich gespeichert.`,
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: error instanceof Error ? error.message : "Ein Fehler ist aufgetreten.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -160,8 +235,13 @@ export default function ZaehlerAblesen() {
                     placeholder={`z.B. ${(previousValue || 0) + 100}`}
                     value={formData.value}
                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    className="text-lg"
+                    className={`text-lg ${validationErrors.value || validationErrors.meter_type ? "border-destructive" : ""}`}
+                    min="0"
+                    step="0.001"
                   />
+                  {(validationErrors.value || validationErrors.meter_type) && (
+                    <p className="text-sm text-destructive">{validationErrors.value || validationErrors.meter_type}</p>
+                  )}
                 </div>
 
                 {/* Calculated Consumption */}
