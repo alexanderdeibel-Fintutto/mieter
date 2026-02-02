@@ -9,6 +9,7 @@ type EmptyStateVariant =
   | "no-notifications" 
   | "no-search-results" 
   | "no-documents"
+  | "search"
   | "custom";
 
 interface EmptyStateProps {
@@ -56,6 +57,12 @@ const variants: Record<Exclude<EmptyStateVariant, "custom">, {
     title: "Keine Dokumente",
     description: "Hier werden deine Dokumente angezeigt, sobald welche hochgeladen wurden.",
     color: "text-coral",
+  },
+  "search": {
+    icon: Search,
+    title: "Keine Ergebnisse",
+    description: "Wir konnten nichts zu deiner Suche finden. Versuche es mit anderen Begriffen.",
+    color: "text-amber",
   },
 };
 

@@ -20,6 +20,11 @@ import ZaehlerAblesen from "./pages/ZaehlerAblesen";
 import DokumentAnfragen from "./pages/DokumentAnfragen";
 import Pricing from "./pages/Pricing";
 import Success from "./pages/Success";
+import Hausordnung from "./pages/Hausordnung";
+import Wohnung from "./pages/Wohnung";
+import Dokumente from "./pages/Dokumente";
+import Notfallkontakte from "./pages/Notfallkontakte";
+import Einstellungen from "./pages/Einstellungen";
 
 import NotFound from "./pages/NotFound";
 
@@ -50,6 +55,11 @@ const App = () => (
               <Route path="/mangel-melden" element={<MangelMelden />} />
               <Route path="/zaehler-ablesen" element={<ZaehlerAblesen />} />
               <Route path="/dokument-anfragen" element={<DokumentAnfragen />} />
+              <Route path="/hausordnung" element={<Hausordnung />} />
+              <Route path="/wohnung" element={<Wohnung />} />
+              <Route path="/dokumente" element={<Dokumente />} />
+              <Route path="/notfallkontakte" element={<Notfallkontakte />} />
+              <Route path="/einstellungen" element={<Einstellungen />} />
             </Route>
 
             {/* Catch-all */}

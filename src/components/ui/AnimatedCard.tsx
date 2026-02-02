@@ -5,13 +5,14 @@ import { Card } from "./card";
 interface AnimatedCardProps {
   children: ReactNode;
   delay?: number;
-  accentColor?: "primary" | "mint" | "coral" | "sky" | "amber";
+  accentColor?: "primary" | "secondary" | "mint" | "coral" | "sky" | "amber";
   hover?: boolean;
   className?: string;
 }
 
 const accentBorders: Record<string, string> = {
   primary: "hover:border-primary/30",
+  secondary: "hover:border-secondary/30",
   mint: "hover:border-mint/30",
   coral: "hover:border-coral/30",
   sky: "hover:border-sky/30",
