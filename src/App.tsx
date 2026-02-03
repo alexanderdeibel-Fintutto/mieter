@@ -44,8 +44,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+          <main className="min-h-screen">
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/registrieren" element={<Register />} />
@@ -72,8 +73,9 @@ const App = () => (
 
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+              </Routes>
+            </Suspense>
+          </main>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
