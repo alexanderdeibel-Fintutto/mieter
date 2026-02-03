@@ -681,6 +681,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_organization_details: {
+        Args: { org_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          stripe_customer_id: string
+          subscription_plan: string
+          type: string
+        }[]
+      }
       get_user_unit_id: { Args: never; Returns: string }
       has_role: {
         Args: {
