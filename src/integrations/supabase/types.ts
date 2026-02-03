@@ -681,6 +681,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_building: {
+        Args: { _building_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_organization_details: {
         Args: { org_id: string }
         Returns: {
@@ -692,12 +696,17 @@ export type Database = {
           type: string
         }[]
       }
+      get_user_building_id: { Args: { _user_id: string }; Returns: string }
       get_user_unit_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      same_organization: {
+        Args: { _user_id1: string; _user_id2: string }
         Returns: boolean
       }
     }
