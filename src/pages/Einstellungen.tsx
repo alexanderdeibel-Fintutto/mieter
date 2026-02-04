@@ -5,6 +5,8 @@ import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRoles } from "@/hooks/useUserRoles";
+import { BuildingManagement } from "@/components/buildings/BuildingManagement";
 import { motion } from "framer-motion";
 import { 
   User, 
@@ -23,13 +25,15 @@ import {
   Volume2,
   Vibrate,
   CreditCard,
-  Crown
+  Crown,
+  Building2
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Einstellungen() {
   const { user } = useAuth();
+  const { canManageBuildings, loading: rolesLoading } = useUserRoles();
   const userName = user?.user_metadata?.name || "Mieter";
   const userEmail = user?.email || "";
   
@@ -102,6 +106,11 @@ export default function Einstellungen() {
             </CardContent>
           </AnimatedCard>
         </Link>
+
+        {/* Building Management - Only for Vermieter/Admin */}
+        {canManageBuildings && !rolesLoading && (
+          <BuildingManagement />
+        )}
 
         {/* Notifications Section */}
         <div>
