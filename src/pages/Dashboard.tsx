@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import heroBackground from "@/assets/gamma-bg-mieter-4k.png";
 import { IconBadge } from "@/components/ui/IconBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -56,8 +57,12 @@ export default function Dashboard() {
     <MobileLayout>
       {/* Hero Header with animated gradient */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-primary opacity-95" />
-        <div className="absolute inset-0 gradient-mesh opacity-30" />
+        <img 
+          src={heroBackground} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/20" />
         <div className="relative px-4 pt-12 pb-10">
           <div className="flex items-center gap-4">
             {/* Avatar with gradient ring */}
