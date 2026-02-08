@@ -1,74 +1,90 @@
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ChatSkeleton } from "@/components/ui/ShimmerSkeleton";
 import { CardContent } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useChatData } from "@/hooks/useChatData";
+import { formatDistanceToNow } from "date-fns";
+import { de } from "date-fns/locale";
 
-const avatarColors: Record<string, string> = {
-  "Hausverwaltung": "gradient-primary",
-  "Hausmeister": "gradient-coral",
-  "Nachbar": "gradient-sky",
-};
+const avatarGradients = [
+  "gradient-primary",
+  "gradient-coral",
+  "gradient-sky",
+  "gradient-mint",
+  "gradient-amber",
+];
 
 const getInitials = (name: string) =>
-  name.split(' ').map(n => n[0]).join('').toUpperCase();
+  name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 export default function Chat() {
-  const conversations = [
-    { id: 1, name: "Hausverwaltung", lastMessage: "Ihre Nebenkostenabrechnung ist fertig und kann abgeholt werden.", time: "Vor 2 Std.", unread: 1 },
-    { id: 2, name: "Hausmeister", lastMessage: "Die Heizung wurde repariert. Funktioniert jetzt alles?", time: "Gestern", unread: 0 },
-  ];
+  const { data: conversations, isLoading } = useChatData();
 
   return (
     <MobileLayout>
       <PageHeader title="Nachrichten" subtitle="Kommunikation mit der Verwaltung" />
 
-      <div className="px-4 -mt-2 space-y-3 pb-4">
-        {conversations.map((conv, index) => {
-          const avatarClass = avatarColors[conv.name] || "gradient-sky";
-          return (
-            <Link key={conv.id} to={`/chat/${conv.id}`}>
-              <AnimatedCard delay={index * 80} hover>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-2xl ${avatarClass} flex items-center justify-center flex-shrink-0 shadow-lg relative`}>
-                      <span className="text-white font-bold text-lg">{getInitials(conv.name)}</span>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-success rounded-full border-2 border-card" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold">{conv.name}</h3>
-                        <span className="text-xs text-muted-foreground">{conv.time}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {conv.unread > 0 && (
-                        <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white animate-bounce-in shadow-lg shadow-primary/30">
-                          {conv.unread}
-                        </span>
-                      )}
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  </div>
-                </CardContent>
-              </AnimatedCard>
-            </Link>
-          );
-        })}
+      {isLoading ? (
+        <ChatSkeleton />
+      ) : (
+        <div className="px-4 -mt-2 space-y-3 pb-4">
+          {conversations && conversations.length > 0 ? (
+            conversations.map((conv, index) => {
+              const avatarClass = avatarGradients[index % avatarGradients.length];
+              const timeAgo = formatDistanceToNow(new Date(conv.lastMessageAt), {
+                addSuffix: false,
+                locale: de,
+              });
 
-        {conversations.length === 0 && (
-          <AnimatedCard delay={0}>
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
-                <span className="text-3xl">💬</span>
-              </div>
-              <p className="text-muted-foreground">Keine Nachrichten vorhanden</p>
-            </CardContent>
-          </AnimatedCard>
-        )}
-      </div>
+              return (
+                <Link key={conv.partnerId} to={`/chat/${conv.partnerId}`}>
+                  <AnimatedCard delay={index * 80} hover>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-2xl ${avatarClass} flex items-center justify-center flex-shrink-0 shadow-lg relative`}>
+                          <span className="text-white font-bold text-lg">{getInitials(conv.partnerName)}</span>
+                          {conv.unreadCount > 0 && (
+                            <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-success rounded-full border-2 border-card" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold">{conv.partnerName}</h3>
+                            <span className="text-xs text-muted-foreground">Vor {timeAgo}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {conv.unreadCount > 0 && (
+                            <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white animate-bounce-in shadow-lg shadow-primary/30">
+                              {conv.unreadCount}
+                            </span>
+                          )}
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </AnimatedCard>
+                </Link>
+              );
+            })
+          ) : (
+            <AnimatedCard delay={0}>
+              <CardContent className="p-6">
+                <EmptyState
+                  icon={MessageSquare}
+                  title="Keine Nachrichten"
+                  description="Sie haben noch keine Unterhaltungen."
+                />
+              </CardContent>
+            </AnimatedCard>
+          )}
+        </div>
+      )}
     </MobileLayout>
   );
 }
