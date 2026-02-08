@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { AnimatedCard } from "@/components/ui/AnimatedCard";
+import { DashboardSkeleton } from "@/components/ui/ShimmerSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import mieterLogo from "@/assets/mieter-logo.svg";
 
 import { IconBadge } from "@/components/ui/IconBadge";
@@ -15,9 +16,14 @@ import {
   Gauge, 
   Wrench,
   ChevronRight,
-  Calendar
+  Calendar,
+  MessageSquare,
+  CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { formatDistanceToNow } from "date-fns";
+import { de } from "date-fns/locale";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -26,9 +32,8 @@ function getGreeting(): string {
   return "Guten Abend";
 }
 
-function getDaysUntilDue(dueDateStr: string): number {
-  const [day, month, year] = dueDateStr.split('.').map(Number);
-  const dueDate = new Date(year, month - 1, day);
+function getDaysUntilDue(dueDate: Date | null): number {
+  if (!dueDate) return 30;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diffTime = dueDate.getTime() - today.getTime();
@@ -38,21 +43,7 @@ function getDaysUntilDue(dueDateStr: string): number {
 export default function Dashboard() {
   const { user } = useAuth();
   const userName = user?.user_metadata?.name?.split(' ')[0] || "Mieter";
-
-  // Mock data - will be replaced with real data from Supabase
-  const mockData = {
-    nextRent: {
-      amount: 850.00,
-      dueDate: "01.03.2026",
-    },
-    openIssues: 2,
-    lastMessages: [
-      { id: 1, from: "Hausverwaltung", preview: "Ihre Nebenkostenabrechnung ist...", time: "Vor 2 Std.", unread: true },
-    ],
-  };
-
-  const daysUntilDue = getDaysUntilDue(mockData.nextRent.dueDate);
-  const progressToPayday = Math.max(0, Math.min(100, ((30 - daysUntilDue) / 30) * 100));
+  const { data, isLoading } = useDashboardData();
 
   return (
     <MobileLayout>
@@ -69,142 +60,198 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="px-4 -mt-6 space-y-4 pb-4">
-        {/* Next Rent Card with Progress Ring */}
-        <AnimatedCard delay={0} accentColor="primary">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-muted-foreground flex items-center gap-2">
-              <IconBadge icon={Euro} variant="primary" size="sm" />
-              Nächste Mietzahlung
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <ProgressRing 
-                  progress={progressToPayday} 
-                  size={56}
-                  strokeWidth={5}
-                  variant={daysUntilDue <= 5 ? "warning" : "primary"}
-                  showLabel={false}
-                />
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {mockData.nextRent.amount.toFixed(2)} €
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {daysUntilDue > 0 ? `In ${daysUntilDue} Tagen` : "Heute fällig"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Link to="/finanzen">
-                <Button variant="ghost" size="sm" className="group">
-                  Details
-                  <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </AnimatedCard>
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : (
+        <div className="px-4 -mt-6 space-y-4 pb-4">
+          {/* Next Rent Card */}
+          <RentCard nextRent={data?.nextRent ?? null} />
 
-        {/* Open Issues Card */}
-        <AnimatedCard delay={100} accentColor="coral">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-muted-foreground flex items-center gap-2">
-              <IconBadge icon={AlertTriangle} variant="warning" size="sm" />
-              Offene Meldungen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-warning">{mockData.openIssues}</span>
-                </div>
-                <div>
-                  <p className="font-medium">Meldungen offen</p>
-                  <StatusBadge status="warning" label="In Bearbeitung" />
-                </div>
-              </div>
-              <Link to="/meine-meldungen">
-                <Button variant="ghost" size="sm" className="group">
-                  Ansehen
-                  <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </AnimatedCard>
+          {/* Open Issues Card */}
+          <IssuesCard count={data?.openIssuesCount ?? 0} />
 
-        {/* Quick Actions with colorful icons */}
-        <div>
-          <h2 className="text-sm font-semibold text-white/80 mb-3 px-1 uppercase tracking-wide">
-            Schnellzugriff
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/zaehler-ablesen">
-              <AnimatedCard delay={200} accentColor="mint" className="h-full">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="w-14 h-14 rounded-2xl gradient-mint flex items-center justify-center mb-3 shadow-lg shadow-mint/20 animate-float">
-                    <Gauge className="h-7 w-7 text-white" />
-                  </div>
-                  <span className="text-sm font-semibold">Zähler ablesen</span>
-                </CardContent>
-              </AnimatedCard>
-            </Link>
-            <Link to="/mangel-melden">
-              <AnimatedCard delay={250} accentColor="coral" className="h-full">
-                <CardContent className="p-4 flex flex-col items-center text-center">
-                  <div className="w-14 h-14 rounded-2xl gradient-coral flex items-center justify-center mb-3 shadow-lg shadow-coral/20 animate-float" style={{ animationDelay: "0.5s" }}>
-                    <Wrench className="h-7 w-7 text-white" />
-                  </div>
-                  <span className="text-sm font-semibold">Mangel melden</span>
-                </CardContent>
-              </AnimatedCard>
-            </Link>
-          </div>
-        </div>
-
-        {/* Last Messages with avatars */}
-        <div>
-          <h2 className="text-sm font-semibold text-white/80 mb-3 px-1 uppercase tracking-wide">
-            Letzte Nachrichten
-          </h2>
-          <AnimatedCard delay={300}>
-            {mockData.lastMessages.map((msg) => (
-              <Link key={msg.id} to="/chat">
-                <CardContent className="p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors rounded-lg">
-                  <div className="w-12 h-12 rounded-2xl gradient-sky flex items-center justify-center flex-shrink-0 shadow-md">
-                    <span className="text-white font-semibold text-sm">
-                      {msg.from.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-sm">{msg.from}</p>
-                      {msg.unread && (
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse-soft" />
-                      )}
+          {/* Quick Actions */}
+          <div>
+            <h2 className="text-sm font-semibold text-white/80 mb-3 px-1 uppercase tracking-wide">
+              Schnellzugriff
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/zaehler-ablesen">
+                <AnimatedCard delay={200} accentColor="mint" className="h-full">
+                  <CardContent className="p-4 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-2xl gradient-mint flex items-center justify-center mb-3 shadow-lg shadow-mint/20 animate-float">
+                      <Gauge className="h-7 w-7 text-white" />
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{msg.preview}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs text-muted-foreground">{msg.time}</span>
-                    {msg.unread && (
-                      <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-white animate-bounce-in">
-                        1
-                      </span>
+                    <span className="text-sm font-semibold">Zähler ablesen</span>
+                  </CardContent>
+                </AnimatedCard>
+              </Link>
+              <Link to="/mangel-melden">
+                <AnimatedCard delay={250} accentColor="coral" className="h-full">
+                  <CardContent className="p-4 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-2xl gradient-coral flex items-center justify-center mb-3 shadow-lg shadow-coral/20 animate-float" style={{ animationDelay: "0.5s" }}>
+                      <Wrench className="h-7 w-7 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold">Mangel melden</span>
+                  </CardContent>
+                </AnimatedCard>
+              </Link>
+            </div>
+          </div>
+
+          {/* Last Messages */}
+          <MessagesSection messages={data?.lastMessages ?? []} />
+        </div>
+      )}
+    </MobileLayout>
+  );
+}
+
+function RentCard({ nextRent }: { nextRent: { amount: number; dueDate: Date | null; paymentDay: number } | null }) {
+  if (!nextRent) {
+    return (
+      <AnimatedCard delay={0} accentColor="primary">
+        <CardContent className="p-6">
+          <EmptyState
+            icon={Euro}
+            title="Kein aktiver Mietvertrag"
+            description="Es wurde noch kein Mietvertrag hinterlegt."
+          />
+        </CardContent>
+      </AnimatedCard>
+    );
+  }
+
+  const daysUntilDue = getDaysUntilDue(nextRent.dueDate);
+  const progressToPayday = Math.max(0, Math.min(100, ((30 - daysUntilDue) / 30) * 100));
+
+  return (
+    <AnimatedCard delay={0} accentColor="primary">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-medium text-muted-foreground flex items-center gap-2">
+          <IconBadge icon={Euro} variant="primary" size="sm" />
+          Nächste Mietzahlung
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <ProgressRing 
+              progress={progressToPayday} 
+              size={56}
+              strokeWidth={5}
+              variant={daysUntilDue <= 5 ? "warning" : "primary"}
+              showLabel={false}
+            />
+            <div>
+              <p className="text-3xl font-bold text-foreground">
+                {nextRent.amount.toFixed(2)} €
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {daysUntilDue > 0 ? `In ${daysUntilDue} Tagen` : daysUntilDue === 0 ? "Heute fällig" : "Überfällig"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <Link to="/finanzen">
+            <Button variant="ghost" size="sm" className="group">
+              Details
+              <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </AnimatedCard>
+  );
+}
+
+function IssuesCard({ count }: { count: number }) {
+  return (
+    <AnimatedCard delay={100} accentColor={count > 0 ? "coral" : "mint"}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-medium text-muted-foreground flex items-center gap-2">
+          <IconBadge icon={count > 0 ? AlertTriangle : CheckCircle} variant={count > 0 ? "warning" : "success"} size="sm" />
+          {count > 0 ? "Offene Meldungen" : "Meldungen"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl ${count > 0 ? "bg-warning/10" : "bg-success/10"} flex items-center justify-center`}>
+              <span className={`text-2xl font-bold ${count > 0 ? "text-warning" : "text-success"}`}>{count}</span>
+            </div>
+            <div>
+              <p className="font-medium">{count > 0 ? "Meldungen offen" : "Keine offenen Meldungen"}</p>
+              <StatusBadge 
+                status={count > 0 ? "warning" : "success"} 
+                label={count > 0 ? "In Bearbeitung" : "Alles erledigt"} 
+              />
+            </div>
+          </div>
+          <Link to="/meine-meldungen">
+            <Button variant="ghost" size="sm" className="group">
+              Ansehen
+              <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </AnimatedCard>
+  );
+}
+
+function MessagesSection({ messages }: { messages: { id: string; senderName: string; content: string; createdAt: string; isRead: boolean }[] }) {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-white/80 mb-3 px-1 uppercase tracking-wide">
+        Letzte Nachrichten
+      </h2>
+      {messages.length === 0 ? (
+        <AnimatedCard delay={300}>
+          <CardContent className="p-6">
+            <EmptyState
+              icon={MessageSquare}
+              title="Keine Nachrichten"
+              description="Sie haben noch keine Nachrichten erhalten."
+            />
+          </CardContent>
+        </AnimatedCard>
+      ) : (
+        <AnimatedCard delay={300}>
+          {messages.map((msg) => (
+            <Link key={msg.id} to="/chat">
+              <CardContent className="p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors rounded-lg">
+                <div className="w-12 h-12 rounded-2xl gradient-sky flex items-center justify-center flex-shrink-0 shadow-md">
+                  <span className="text-white font-semibold text-sm">
+                    {msg.senderName.split(' ').map(n => n[0]).join('')}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm">{msg.senderName}</p>
+                    {!msg.isRead && (
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse-soft" />
                     )}
                   </div>
-                </CardContent>
-              </Link>
-            ))}
-          </AnimatedCard>
-        </div>
-      </div>
-    </MobileLayout>
+                  <p className="text-sm text-muted-foreground truncate">{msg.content}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: false, locale: de })}
+                  </span>
+                  {!msg.isRead && (
+                    <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-white animate-bounce-in">
+                      !
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Link>
+          ))}
+        </AnimatedCard>
+      )}
+    </div>
   );
 }
