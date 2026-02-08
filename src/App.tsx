@@ -26,6 +26,7 @@ const Wohnung = lazy(() => import("./pages/Wohnung"));
 const Dokumente = lazy(() => import("./pages/Dokumente"));
 const Notfallkontakte = lazy(() => import("./pages/Notfallkontakte"));
 const Einstellungen = lazy(() => import("./pages/Einstellungen"));
+const MeineMeldungen = lazy(() => import("./pages/MeineMeldungen"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/dokumente" element={<Dokumente />} />
                 <Route path="/notfallkontakte" element={<Notfallkontakte />} />
                 <Route path="/einstellungen" element={<Einstellungen />} />
+                <Route path="/meine-meldungen" element={<MeineMeldungen />} />
               </Route>
 
               {/* Catch-all */}
