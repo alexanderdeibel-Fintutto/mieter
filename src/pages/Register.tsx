@@ -49,7 +49,7 @@ export default function Register() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <img src={heroBackground} alt="" className="fixed inset-0 w-full h-full object-cover -z-10" />
-      <div className="fixed inset-0 bg-black/30 -z-10" />
+      <div className="fixed inset-0 bg-black/15 -z-10" />
 
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-6 animate-slide-up">

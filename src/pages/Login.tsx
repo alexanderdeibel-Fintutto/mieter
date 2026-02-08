@@ -48,7 +48,7 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Global gradient background */}
       <img src={heroBackground} alt="" className="fixed inset-0 w-full h-full object-cover -z-10" />
-      <div className="fixed inset-0 bg-black/30 -z-10" />
+      <div className="fixed inset-0 bg-black/15 -z-10" />
 
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8 animate-slide-up">

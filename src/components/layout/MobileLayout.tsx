@@ -28,7 +28,7 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
         alt=""
         className="fixed inset-0 w-full h-full object-cover -z-10"
       />
-      <div className="fixed inset-0 bg-black/30 -z-10" />
+      <div className="fixed inset-0 bg-black/15 -z-10" />
 
       <AnimatePresence mode="wait">
         <motion.main
