@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { BottomNavigation } from "./BottomNavigation";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import heroBackground from "@/assets/gamma-bg-rainbow-vertical.svg";
+import heroBackground from "@/assets/gamma-bg-mieter-4k.png";
 
 interface MobileLayoutProps {
   children: ReactNode;
