@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import mieterLogo from "@/assets/mieter-logo.svg";
-import heroBackground from "@/assets/gamma-bg-mieter-4k.png";
+import heroBackground from "@/assets/gamma-bg-rainbow-vertical.svg";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
