@@ -1,18 +1,18 @@
 <svg width="3840" height="2160" viewBox="0 0 3840 2160" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="rainbow-radial" cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
+    <radialGradient id="rainbow-radial" cx="50%" cy="50%" r="75%" fx="50%" fy="50%">
       <stop offset="0%" stop-color="#0f0f1a"/>
       <stop offset="8%" stop-color="#1a1030"/>
-      <stop offset="20%" stop-color="#2563EB"/>
-      <stop offset="28%" stop-color="#06B6D4"/>
-      <stop offset="36%" stop-color="#10B981"/>
-      <stop offset="44%" stop-color="#84CC16"/>
-      <stop offset="52%" stop-color="#EAB308"/>
-      <stop offset="60%" stop-color="#F97316"/>
-      <stop offset="68%" stop-color="#E879F9"/>
-      <stop offset="76%" stop-color="#8B5CF6"/>
-      <stop offset="84%" stop-color="#6366F1"/>
-      <stop offset="92%" stop-color="#EC4899"/>
+      <stop offset="18%" stop-color="#2563EB"/>
+      <stop offset="26%" stop-color="#06B6D4"/>
+      <stop offset="34%" stop-color="#10B981"/>
+      <stop offset="42%" stop-color="#84CC16"/>
+      <stop offset="50%" stop-color="#EAB308"/>
+      <stop offset="58%" stop-color="#F97316"/>
+      <stop offset="66%" stop-color="#E879F9"/>
+      <stop offset="74%" stop-color="#8B5CF6"/>
+      <stop offset="82%" stop-color="#6366F1"/>
+      <stop offset="90%" stop-color="#EC4899"/>
       <stop offset="100%" stop-color="#F97316"/>
     </radialGradient>
   </defs>
