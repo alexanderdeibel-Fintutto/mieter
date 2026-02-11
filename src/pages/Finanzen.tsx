@@ -20,13 +20,8 @@ export default function Finanzen() {
         <FinanceSkeleton />
       ) : (
         <div className="px-4 -mt-2 space-y-4 pb-4">
-          {/* Balance Card */}
           <BalanceCard balance={data?.balance ?? 0} />
-
-          {/* Rent Breakdown */}
           <RentBreakdownCard rent={data?.rent ?? null} />
-
-          {/* Payment History */}
           <PaymentHistory payments={data?.payments ?? []} />
         </div>
       )}
@@ -40,7 +35,7 @@ function BalanceCard({ balance }: { balance: number }) {
   return (
     <AnimatedCard delay={0} accentColor={isPositive ? "mint" : "coral"}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium text-muted-foreground">Kontostand</CardTitle>
+        <CardTitle className="text-base font-medium text-white/70">Kontostand</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
@@ -88,45 +83,45 @@ function RentBreakdownCard({ rent }: { rent: { cold: number; utilities: number; 
   return (
     <AnimatedCard delay={100} accentColor="primary">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium text-muted-foreground flex items-center gap-2">
+        <CardTitle className="text-base font-medium text-white/70 flex items-center gap-2">
           <IconBadge icon={Euro} variant="primary" size="sm" />
           Monatliche Miete
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="flex h-4 rounded-full overflow-hidden bg-muted">
+          <div className="flex h-4 rounded-full overflow-hidden bg-white/[0.08]">
             <div className="bg-primary transition-all duration-500" style={{ width: `${coldPercentage}%` }} />
             <div className="bg-secondary transition-all duration-500" style={{ width: `${100 - coldPercentage}%` }} />
           </div>
           <div className="flex justify-between text-xs">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-              <span className="text-muted-foreground">Kaltmiete</span>
+              <span className="text-white/60">Kaltmiete</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
-              <span className="text-muted-foreground">Nebenkosten</span>
+              <span className="text-white/60">Nebenkosten</span>
             </div>
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex justify-between items-center py-2 border-b border-border/50">
+          <div className="flex justify-between items-center py-2 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-muted-foreground">Kaltmiete</span>
+              <span className="text-white/60">Kaltmiete</span>
             </div>
-            <span className="font-medium">{rent.cold.toFixed(2)} €</span>
+            <span className="font-medium text-white/90">{rent.cold.toFixed(2)} €</span>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-border/50">
+          <div className="flex justify-between items-center py-2 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary" />
-              <span className="text-muted-foreground">Nebenkosten</span>
+              <span className="text-white/60">Nebenkosten</span>
             </div>
-            <span className="font-medium">{rent.utilities.toFixed(2)} €</span>
+            <span className="font-medium text-white/90">{rent.utilities.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center pt-2">
-            <span className="font-semibold">Gesamtbetrag</span>
+            <span className="font-semibold text-white/90">Gesamtbetrag</span>
             <span className="text-2xl font-bold text-primary">{rent.total.toFixed(2)} €</span>
           </div>
         </div>
@@ -154,24 +149,24 @@ function PaymentHistory({ payments }: { payments: { id: string; date: string; am
         </AnimatedCard>
       ) : (
         <AnimatedCard delay={200}>
-          <div className="divide-y divide-border/50">
+          <div className="divide-y divide-white/[0.08]">
             {payments.map((payment, index) => {
               const isCredit = payment.status === "Gutgeschrieben";
               return (
                 <CardContent key={payment.id} className="p-4 relative">
                   {index < payments.length - 1 && (
-                    <div className="absolute left-8 top-14 bottom-0 w-0.5 bg-border/50" />
+                    <div className="absolute left-8 top-14 bottom-0 w-0.5 bg-white/[0.08]" />
                   )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full z-10 ${isCredit ? 'bg-success' : 'bg-primary'}`} />
                       <div>
-                        <p className="font-medium">{payment.type}</p>
-                        <p className="text-sm text-muted-foreground">{payment.date}</p>
+                        <p className="font-medium text-white/90">{payment.type}</p>
+                        <p className="text-sm text-white/50">{payment.date}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold text-lg ${isCredit ? 'text-success' : ''}`}>
+                      <p className={`font-semibold text-lg ${isCredit ? 'text-success' : 'text-white/90'}`}>
                         {isCredit ? '+' : '-'}{payment.amount.toFixed(2)} €
                       </p>
                       <StatusBadge 

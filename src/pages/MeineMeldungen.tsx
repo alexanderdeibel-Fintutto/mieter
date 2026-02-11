@@ -118,16 +118,16 @@ export default function MeineMeldungen() {
                     <IconBadge icon={CatIcon} variant={cat.color} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm">{cat.label}</span>
+                        <span className="font-semibold text-sm text-white/90">{cat.label}</span>
                         <StatusBadge status={stat.variant} label={stat.label} />
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{issue.description}</p>
+                      <p className="text-sm text-white/50 line-clamp-2 mb-2">{issue.description}</p>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
                           <span className={cn("w-2.5 h-2.5 rounded-full", prio.color)} />
-                          <span className="text-xs text-muted-foreground">{prio.label}</span>
+                          <span className="text-xs text-white/50">{prio.label}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-white/40">
                           {format(new Date(issue.created_at), "dd. MMM yyyy", { locale: de })}
                         </span>
                       </div>

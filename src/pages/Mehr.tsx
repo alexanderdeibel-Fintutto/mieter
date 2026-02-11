@@ -46,8 +46,8 @@ export default function Mehr() {
                 </button>
               </div>
               <div className="flex-1">
-                <p className="font-bold text-lg">{userName}</p>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <p className="font-bold text-lg text-white/90">{userName}</p>
+                <p className="text-sm text-white/50">{user?.email}</p>
                 <span className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   Aktiv
@@ -59,19 +59,19 @@ export default function Mehr() {
 
         {/* Menu Items */}
         <AnimatedCard delay={100}>
-          <div className="divide-y divide-border/50">
+          <div className="divide-y divide-white/[0.08]">
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link key={item.to} to={item.to}>
-                  <CardContent className="p-4 hover:bg-muted/30 transition-all duration-200 group">
+                  <CardContent className="p-4 hover:bg-white/[0.04] transition-all duration-200 group">
                     <div className="flex items-center gap-4">
                       <IconBadge icon={Icon} variant={item.color} size="md" />
                       <div className="flex-1">
-                        <p className="font-medium">{item.label}</p>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <p className="font-medium text-white/90">{item.label}</p>
+                        <p className="text-sm text-white/50">{item.description}</p>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+                      <ChevronRight className="h-5 w-5 text-white/40 transition-transform group-hover:translate-x-1" />
                     </div>
                   </CardContent>
                 </Link>
@@ -90,7 +90,7 @@ export default function Mehr() {
               <IconBadge icon={LogOut} variant="destructive" size="md" />
               <div className="flex-1">
                 <p className="font-medium text-destructive">Abmelden</p>
-                <p className="text-sm text-muted-foreground">Von Ihrem Konto abmelden</p>
+                <p className="text-sm text-white/50">Von Ihrem Konto abmelden</p>
               </div>
             </div>
           </CardContent>
