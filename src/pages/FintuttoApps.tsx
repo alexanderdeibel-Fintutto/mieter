@@ -7,13 +7,14 @@ import { IconBadge } from "@/components/ui/IconBadge";
 import { ShimmerSkeleton } from "@/components/ui/ShimmerSkeleton";
 import { 
   Building2, Wrench, Home, Gauge, 
-  ExternalLink, Share2, ChevronRight, Sparkles, Star, Copy, Check
+  ExternalLink, Share2, ChevronRight, Sparkles, Star, Copy, Check, Users, MousePointerClick
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useReferralCode } from "@/hooks/useReferralCode";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppPlan {
   name: string;
@@ -122,9 +123,31 @@ function handleShare(app: typeof APPS[0], referralCode: string | null) {
   }
 }
 
+function useReferralStats(referralCode: string | null | undefined) {
+  return useQuery({
+    queryKey: ["referral-stats", referralCode],
+    queryFn: async () => {
+      if (!referralCode) return { total: 0, byApp: {} as Record<string, number> };
+      const { data, error } = await supabase
+        .from("referral_clicks")
+        .select("app_id")
+        .eq("referral_code", referralCode);
+      if (error) throw error;
+      const byApp: Record<string, number> = {};
+      (data || []).forEach((row: { app_id: string }) => {
+        byApp[row.app_id] = (byApp[row.app_id] || 0) + 1;
+      });
+      return { total: data?.length || 0, byApp };
+    },
+    enabled: !!referralCode,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export default function FintuttoApps() {
   const { data: prices, isLoading: pricesLoading } = useEcosystemPrices();
   const { data: referralCode } = useReferralCode();
+  const { data: referralStats } = useReferralStats(referralCode);
   const [copiedApp, setCopiedApp] = useState<string | null>(null);
   return (
     <MobileLayout>
@@ -267,6 +290,38 @@ export default function FintuttoApps() {
             </AnimatedCard>
           );
         })}
+
+        {/* Referral Stats */}
+        {referralCode && (
+          <AnimatedCard delay={550} accentColor="amber">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-amber flex items-center justify-center shadow-lg">
+                  <MousePointerClick className="h-5 w-5 text-amber-foreground" />
+                </div>
+                <div>
+                  <p className="font-bold text-white/90">Ihre Empfehlungen</p>
+                  <p className="text-xs text-white/50">Referral-Code: <span className="font-mono text-white/70">{referralCode}</span></p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 text-center p-3 rounded-xl bg-white/[0.04]">
+                  <p className="text-2xl font-bold text-white/90">{referralStats?.total ?? 0}</p>
+                  <p className="text-[10px] text-white/40 mt-0.5">Klicks gesamt</p>
+                </div>
+                {APPS.filter(a => !a.isCurrent).map(app => {
+                  const clicks = referralStats?.byApp[app.id] || 0;
+                  return (
+                    <div key={app.id} className="flex-1 text-center p-3 rounded-xl bg-white/[0.04]">
+                      <p className="text-2xl font-bold text-white/90">{clicks}</p>
+                      <p className="text-[10px] text-white/40 mt-0.5 truncate">{app.name.split(" ")[0]}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+        )}
 
         {/* Footer CTA */}
         <AnimatedCard delay={600}>
