@@ -7,11 +7,13 @@ import { IconBadge } from "@/components/ui/IconBadge";
 import { ShimmerSkeleton } from "@/components/ui/ShimmerSkeleton";
 import { 
   Building2, Wrench, Home, Gauge, 
-  ExternalLink, Share2, ChevronRight, Sparkles, Star
+  ExternalLink, Share2, ChevronRight, Sparkles, Star, Copy, Check
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useReferralCode } from "@/hooks/useReferralCode";
+import { useState } from "react";
 
 interface AppPlan {
   name: string;
@@ -99,21 +101,31 @@ function formatPrice(price: number, currency: string = "eur") {
   }).format(price);
 }
 
-function handleShare(app: typeof APPS[0]) {
+function buildReferralUrl(appUrl: string, appId: string, referralCode: string | null) {
+  const url = new URL(appUrl);
+  if (referralCode) {
+    url.searchParams.set("ref", referralCode);
+    url.searchParams.set("app", appId);
+  }
+  return url.toString();
+}
+
+function handleShare(app: typeof APPS[0], referralCode: string | null) {
+  const shareUrl = buildReferralUrl(app.url, app.id, referralCode);
   const text = `Schau dir ${app.name} an – ${app.subtitle} von Fintutto! 🏠`;
-  const shareUrl = app.url;
 
   if (navigator.share) {
     navigator.share({ title: app.name, text, url: shareUrl }).catch(() => {});
   } else {
     navigator.clipboard.writeText(`${text}\n${shareUrl}`);
-    toast.success("Link kopiert!", { description: "Der Einladungslink wurde in die Zwischenablage kopiert." });
+    toast.success("Link kopiert!", { description: "Dein persönlicher Einladungslink wurde kopiert." });
   }
 }
 
 export default function FintuttoApps() {
   const { data: prices, isLoading: pricesLoading } = useEcosystemPrices();
-
+  const { data: referralCode } = useReferralCode();
+  const [copiedApp, setCopiedApp] = useState<string | null>(null);
   return (
     <MobileLayout>
       <PageHeader title="Fintutto Ökosystem" subtitle="Alle Apps für Ihre Immobilien" />
@@ -246,7 +258,7 @@ export default function FintuttoApps() {
                     variant="ghost"
                     size="sm"
                     className="text-white/50 hover:text-white hover:bg-white/10"
-                    onClick={() => handleShare(app)}
+                    onClick={() => handleShare(app, referralCode ?? null)}
                   >
                     <Share2 className="h-4 w-4" />
                   </Button>
