@@ -120,7 +120,7 @@ export default function Register() {
           {ECOSYSTEM_APPS.map((app) => (
             <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
               className="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.04] border border-white/[0.06] backdrop-blur-sm hover:bg-white/[0.08] hover:border-white/[0.12] transition-all">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.gradient} flex items-center justify-center shadow-lg`}>
+              <div className={`w-10 h-10 rounded-xl ${app.bgClass} flex items-center justify-center shadow-lg`}>
                 <app.icon className="h-5 w-5 text-white" />
               </div>
               <span className="font-semibold text-white/80 text-sm text-center">{app.name}</span>
@@ -137,10 +137,10 @@ export default function Register() {
 }
 
 const ECOSYSTEM_APPS = [
-  { name: "Vermietify", subtitle: "Für Vermieter", icon: Building2, gradient: "from-violet-600 to-indigo-600", url: "https://vermietify.vercel.app" },
-  { name: "HausmeisterPro", subtitle: "Facility Management", icon: Wrench, gradient: "from-orange-500 to-red-500", url: "https://hausmeister-pro.vercel.app" },
-  { name: "Fintutto Zähler", subtitle: "Digitale Ablesung", icon: Gauge, gradient: "from-emerald-500 to-teal-500", url: "https://ablesung.vercel.app" },
-  { name: "Wohn-Held", subtitle: "Mieter-Portal", icon: Home, gradient: "from-sky-500 to-blue-500", url: "https://ft-mieter.lovable.app" },
+  { name: "Vermietify", subtitle: "Für Vermieter", icon: Building2, bgClass: "bg-primary", url: "https://vermietify.vercel.app" },
+  { name: "HausmeisterPro", subtitle: "Facility Management", icon: Wrench, bgClass: "bg-coral", url: "https://hausmeister-pro.vercel.app" },
+  { name: "Fintutto Zähler", subtitle: "Digitale Ablesung", icon: Gauge, bgClass: "bg-mint", url: "https://ablesung.vercel.app" },
+  { name: "Wohn-Held", subtitle: "Mieter-Portal", icon: Home, bgClass: "bg-sky", url: "https://ft-mieter.lovable.app" },
 ];
 
 function RequirementItem({ met, label }: { met: boolean; label: string }) {
