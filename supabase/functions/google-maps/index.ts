@@ -1,9 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+const ALLOWED_ORIGINS = [
+  'https://wohn-held.lovable.app',
+  'https://ft-mieter.lovable.app',
+  'https://id-preview--57b539e6-9ace-40cf-bbc1-b1d23a708539.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
 };
 
 interface AutocompleteRequest {
@@ -13,7 +24,14 @@ interface AutocompleteRequest {
   address?: string;
 }
 
+const MAX_INPUT_LENGTH = 200;
+const MAX_ADDRESS_LENGTH = 300;
+const MAX_PLACE_ID_LENGTH = 300;
+
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -56,7 +74,7 @@ serve(async (req) => {
 
     switch (action) {
       case "autocomplete": {
-        if (!input || input.length < 3) {
+        if (!input || input.length < 3 || input.length > MAX_INPUT_LENGTH) {
           return new Response(JSON.stringify({ predictions: [] }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -91,8 +109,8 @@ serve(async (req) => {
       }
 
       case "geocode": {
-        if (!placeId) {
-          throw new Error("placeId is required for geocode action");
+        if (!placeId || placeId.length > MAX_PLACE_ID_LENGTH) {
+          throw new Error("Invalid placeId");
         }
 
         const detailsUrl = new URL(
@@ -138,8 +156,8 @@ serve(async (req) => {
       }
 
       case "validate": {
-        if (!address) {
-          throw new Error("address is required for validate action");
+        if (!address || address.length > MAX_ADDRESS_LENGTH) {
+          throw new Error("Invalid address");
         }
 
         const geocodeUrl = new URL(
@@ -185,9 +203,8 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     console.error("Google Maps function error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "Service temporarily unavailable" }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
