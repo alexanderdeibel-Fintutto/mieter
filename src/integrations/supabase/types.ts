@@ -522,6 +522,62 @@ export type Database = {
           },
         ]
       }
+      referral_clicks: {
+        Row: {
+          app_id: string
+          clicked_at: string
+          id: string
+          ip_hash: string | null
+          referral_code: string
+          user_agent: string | null
+        }
+        Insert: {
+          app_id: string
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          referral_code: string
+          user_agent?: string | null
+        }
+        Update: {
+          app_id?: string
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          referral_code?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_clicks_referral_code_fkey"
+            columns: ["referral_code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -790,6 +846,7 @@ export type Database = {
         Args: { _building_id: string; _user_id: string }
         Returns: boolean
       }
+      generate_referral_code: { Args: never; Returns: string }
       get_organization_details: {
         Args: { org_id: string }
         Returns: {
