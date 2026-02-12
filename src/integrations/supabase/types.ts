@@ -511,6 +511,7 @@ export type Database = {
           name: string
           organization_id: string | null
           phone: string | null
+          referred_by: string | null
           unit_id: string | null
           updated_at: string
           user_id: string
@@ -522,6 +523,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           phone?: string | null
+          referred_by?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id: string
@@ -533,6 +535,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           phone?: string | null
+          referred_by?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id?: string
@@ -614,6 +617,42 @@ export type Database = {
           created_at?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          granted_at: string | null
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_amount: number
+          reward_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_amount?: number
+          reward_type?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          reward_amount?: number
+          reward_type?: string
+          status?: string
         }
         Relationships: []
       }

@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import mieterLogo from "@/assets/mieter-logo.svg";
 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,15 @@ export default function Register() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref");
+
+  // Store referral code in localStorage for later use after email confirmation
+  useEffect(() => {
+    if (referralCode) {
+      localStorage.setItem("referral_code", referralCode);
+    }
+  }, [referralCode]);
 
   const passwordStrength = useMemo(() => {
     let score = 0;

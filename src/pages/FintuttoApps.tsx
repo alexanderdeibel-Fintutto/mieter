@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useReferralCode } from "@/hooks/useReferralCode";
+import { useReferralRewards } from "@/hooks/useReferralRewards";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -148,6 +149,7 @@ export default function FintuttoApps() {
   const { data: prices, isLoading: pricesLoading } = useEcosystemPrices();
   const { data: referralCode } = useReferralCode();
   const { data: referralStats } = useReferralStats(referralCode);
+  const { data: referralRewards } = useReferralRewards();
   const [copiedApp, setCopiedApp] = useState<string | null>(null);
   return (
     <MobileLayout>
@@ -291,7 +293,59 @@ export default function FintuttoApps() {
           );
         })}
 
-        {/* Referral Stats */}
+        {/* Referral Rewards */}
+        {referralCode && (
+          <AnimatedCard delay={500} accentColor="primary">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+                  <Users className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-white/90">Empfehlungs-Programm</p>
+                  <p className="text-xs text-white/50">2 Credits pro erfolgreichem Referral</p>
+                </div>
+              </div>
+
+              {/* Reward Progress */}
+              <div className="bg-white/[0.04] rounded-xl p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-white/70">Erfolgreiche Empfehlungen</span>
+                  <span className="text-lg font-bold text-white/90">{referralRewards?.totalSuccessful ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-white/70">Verdiente Credits</span>
+                  <span className="text-lg font-bold text-primary">{referralRewards?.totalCreditsEarned ?? 0}</span>
+                </div>
+                <div className="text-xs text-white/40 space-y-1">
+                  <p>🎁 <strong>Für Sie:</strong> 2 Credits pro Abo-Abschluss</p>
+                  <p>🎉 <strong>Für Eingeladene:</strong> 1 Woche Pro gratis</p>
+                </div>
+              </div>
+
+              {/* Referral Code */}
+              <div className="flex items-center gap-2 bg-white/[0.04] rounded-xl p-3">
+                <div className="flex-1">
+                  <p className="text-[10px] text-white/40 uppercase tracking-wide">Ihr Einladungscode</p>
+                  <p className="font-mono text-sm text-white/80">{referralCode}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/50 hover:text-white"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://ft-mieter.lovable.app/register?ref=${referralCode}`);
+                    toast.success("Link kopiert!");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </AnimatedCard>
+        )}
+
+        {/* Referral Clicks Stats */}
         {referralCode && (
           <AnimatedCard delay={550} accentColor="amber">
             <CardContent className="p-5">
@@ -300,8 +354,8 @@ export default function FintuttoApps() {
                   <MousePointerClick className="h-5 w-5 text-amber-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-white/90">Ihre Empfehlungen</p>
-                  <p className="text-xs text-white/50">Referral-Code: <span className="font-mono text-white/70">{referralCode}</span></p>
+                  <p className="font-bold text-white/90">Klick-Statistik</p>
+                  <p className="text-xs text-white/50">Code: <span className="font-mono text-white/70">{referralCode}</span></p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
