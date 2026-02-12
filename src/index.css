@@ -234,17 +234,17 @@
 @layer utilities {
   /* Radial rainbow gradient – center bottom-middle, orange core */
   .bg-gradient-radial {
-    background: radial-gradient(circle at 50% 130%,
+    background: radial-gradient(circle at 50% 100%,
       #F97316 0%,
-      #EAB308 4%,
-      #EC4899 8%,
-      #E879F9 12%,
-      #8B5CF6 16%,
-      #6366F1 20%,
-      #1a1030 35%,
-      #0f0f1a 60%,
-      #06B6D4 85%,
-      #1a1030 89%,
+      #EAB308 5%,
+      #EC4899 10%,
+      #E879F9 16%,
+      #8B5CF6 22%,
+      #6366F1 30%,
+      #1a1030 50%,
+      #0f0f1a 65%,
+      #06B6D4 88%,
+      #1a1030 92%,
       #0f0f1a 100%
     );
   }
