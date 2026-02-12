@@ -234,7 +234,7 @@
 @layer utilities {
   /* Radial rainbow gradient – center bottom-middle, orange core */
   .bg-gradient-radial {
-    background: radial-gradient(ellipse 120% 100% at 50% 100%,
+    background: radial-gradient(ellipse 120% 100% at 85% 100%,
       #F97316 0%,
       #EAB308 12%,
       #EC4899 24%,
