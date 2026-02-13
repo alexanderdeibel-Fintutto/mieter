@@ -10,6 +10,7 @@ export interface SubscriptionData {
 }
 
 // MieterApp Stripe Price IDs
+// Preise gesenkt: Mieter sind preissensitive Privatpersonen, konsistent mit Portal Mieter (4.99)
 export const PLANS = {
   free: {
     name: "Free",
@@ -21,19 +22,19 @@ export const PLANS = {
   },
   basic: {
     name: "Basic",
-    price_monthly: 9.99,
-    price_yearly: 95.88, // 20% Rabatt
-    price_id_monthly: "price_1SsEqV52lqSgjCzeKuUQGBOE",
-    price_id_yearly: null, // Kann später hinzugefügt werden
-    product_id: null, // Will be determined from subscription
+    price_monthly: 4.99, // gesenkt von 9.99, konsistent mit Portal Mieter
+    price_yearly: 47.90, // 20% Rabatt (einheitlich ueber alle Apps)
+    price_id_monthly: "price_1SsEqV52lqSgjCzeKuUQGBOE", // TODO: Update with new price after running create-all-stripe-products.sh
+    price_id_yearly: null as string | null, // TODO: Replace after running create-all-stripe-products.sh
+    product_id: null,
   },
   pro: {
     name: "Pro",
-    price_monthly: 19.99,
-    price_yearly: 191.88,
-    price_id_monthly: "price_1SsEr552lqSgjCzeBvWBTzKS",
-    price_id_yearly: null,
-    product_id: null, // Will be determined from subscription
+    price_monthly: 9.99, // gesenkt von 19.99, angemessen fuer Privatperson
+    price_yearly: 95.90, // 20% Rabatt (einheitlich ueber alle Apps)
+    price_id_monthly: "price_1SsEr552lqSgjCzeBvWBTzKS", // TODO: Update with new price after running create-all-stripe-products.sh
+    price_id_yearly: null as string | null, // TODO: Replace after running create-all-stripe-products.sh
+    product_id: null,
   },
 } as const;
 
