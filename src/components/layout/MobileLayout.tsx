@@ -14,13 +14,16 @@ export function MobileLayout({ children, showNav = true }: MobileLayoutProps) {
   const location = useLocation();
   const { hasCompletedOnboarding, isLoading, completeOnboarding } = useOnboarding();
 
-  // Show onboarding for first-time users
   if (!isLoading && hasCompletedOnboarding === false) {
     return <OnboardingFlow onComplete={completeOnboarding} />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
+      {/* Global radial gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-radial" />
+      <div className="fixed inset-0 bg-black/15 -z-10" />
+
       <AnimatePresence mode="wait">
         <motion.main
           key={location.pathname}

@@ -125,6 +125,87 @@ serve(async (req) => {
       if (upsertError) {
         logStep("Warning: Failed to sync subscription to database", { error: upsertError.message });
       }
+
+      // Process referral reward if user was referred and just subscribed
+      try {
+        const { data: profile } = await supabaseClient
+          .from("profiles")
+          .select("referred_by")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profile?.referred_by) {
+          const { data: existingReward } = await supabaseClient
+            .from("referral_rewards")
+            .select("id")
+            .eq("referred_user_id", user.id)
+            .maybeSingle();
+
+          if (!existingReward) {
+            logStep("Processing referral reward for new subscriber");
+            // Find referrer
+            const { data: refCode } = await supabaseClient
+              .from("referral_codes")
+              .select("user_id")
+              .eq("code", profile.referred_by)
+              .single();
+
+            if (refCode) {
+              const CREDITS_PER_REFERRAL = 2;
+              const TRIAL_DAYS = 7;
+
+              // Grant referrer credits
+              const { data: referrerCredits } = await supabaseClient
+                .from("user_credits")
+                .select("balance, total_earned")
+                .eq("user_id", refCode.user_id)
+                .maybeSingle();
+
+              if (referrerCredits) {
+                const newBal = referrerCredits.balance + CREDITS_PER_REFERRAL;
+                await supabaseClient
+                  .from("user_credits")
+                  .update({ balance: newBal, total_earned: referrerCredits.total_earned + CREDITS_PER_REFERRAL })
+                  .eq("user_id", refCode.user_id);
+                await supabaseClient.from("credit_transactions").insert({
+                  user_id: refCode.user_id,
+                  amount: CREDITS_PER_REFERRAL,
+                  balance_after: newBal,
+                  transaction_type: "referral_reward",
+                  description: "Empfehlungsbonus: Nutzer hat ein Abo abgeschlossen",
+                });
+              } else {
+                await supabaseClient.from("user_credits").insert({
+                  user_id: refCode.user_id,
+                  balance: CREDITS_PER_REFERRAL,
+                  total_earned: CREDITS_PER_REFERRAL,
+                });
+                await supabaseClient.from("credit_transactions").insert({
+                  user_id: refCode.user_id,
+                  amount: CREDITS_PER_REFERRAL,
+                  balance_after: CREDITS_PER_REFERRAL,
+                  transaction_type: "referral_reward",
+                  description: "Empfehlungsbonus: Nutzer hat ein Abo abgeschlossen",
+                });
+              }
+
+              // Record reward
+              await supabaseClient.from("referral_rewards").insert({
+                referrer_user_id: refCode.user_id,
+                referred_user_id: user.id,
+                referral_code: profile.referred_by,
+                reward_type: "credits",
+                reward_amount: CREDITS_PER_REFERRAL,
+                status: "granted",
+                granted_at: new Date().toISOString(),
+              });
+              logStep("Referral reward granted", { referrerId: refCode.user_id, credits: CREDITS_PER_REFERRAL });
+            }
+          }
+        }
+      } catch (refErr) {
+        logStep("Warning: Referral reward processing failed", { error: String(refErr) });
+      }
     } else {
       logStep("No active subscription found");
     }

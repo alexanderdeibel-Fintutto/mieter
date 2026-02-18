@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
+    const referralCode = localStorage.getItem("referral_code");
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -46,9 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: window.location.origin,
         data: {
           name,
+          referred_by: referralCode || undefined,
         },
       },
     });
+    if (!error) {
+      localStorage.removeItem("referral_code");
+    }
     return { error };
   };
 

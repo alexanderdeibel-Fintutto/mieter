@@ -62,7 +62,53 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "buildings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          stripe_payment_id: string | null
+          tool_id: string | null
+          tool_type: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          stripe_payment_id?: string | null
+          tool_id?: string | null
+          tool_type?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          stripe_payment_id?: string | null
+          tool_id?: string | null
+          tool_type?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       documents: {
         Row: {
@@ -104,6 +150,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -458,6 +511,7 @@ export type Database = {
           name: string
           organization_id: string | null
           phone: string | null
+          referred_by: string | null
           unit_id: string | null
           updated_at: string
           user_id: string
@@ -469,6 +523,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           phone?: string | null
+          referred_by?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id: string
@@ -480,6 +535,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           phone?: string | null
+          referred_by?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id?: string
@@ -493,6 +549,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -500,6 +563,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_clicks: {
+        Row: {
+          app_id: string
+          clicked_at: string
+          id: string
+          ip_hash: string | null
+          referral_code: string
+          user_agent: string | null
+        }
+        Insert: {
+          app_id: string
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          referral_code: string
+          user_agent?: string | null
+        }
+        Update: {
+          app_id?: string
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          referral_code?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_clicks_referral_code_fkey"
+            columns: ["referral_code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          granted_at: string | null
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_amount: number
+          reward_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_amount?: number
+          reward_type?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          reward_amount?: number
+          reward_type?: string
+          status?: string
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -553,6 +708,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tool_usage_log: {
+        Row: {
+          access_method: string
+          created_at: string
+          credits_cost: number
+          id: string
+          tool_id: string
+          tool_type: string
+          user_id: string
+        }
+        Insert: {
+          access_method?: string
+          created_at?: string
+          credits_cost?: number
+          id?: string
+          tool_id: string
+          tool_type: string
+          user_id: string
+        }
+        Update: {
+          access_method?: string
+          created_at?: string
+          credits_cost?: number
+          id?: string
+          tool_id?: string
+          tool_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       units: {
         Row: {
@@ -609,6 +794,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -678,15 +893,120 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      organizations_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+          stripe_customer_id: string | null
+          subscription_plan: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          stripe_customer_id?: never
+          subscription_plan?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          stripe_customer_id?: never
+          subscription_plan?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      profiles_safe: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          organization_id: string | null
+          phone: string | null
+          unit_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          organization_id?: string | null
+          phone?: never
+          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          organization_id?: string | null
+          phone?: never
+          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      can_manage_building: {
+        Args: { _building_id: string; _user_id: string }
+        Returns: boolean
+      }
+      generate_referral_code: { Args: never; Returns: string }
+      get_organization_details: {
+        Args: { org_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          stripe_customer_id: string
+          subscription_plan: string
+          type: string
+        }[]
+      }
+      get_user_building_id: { Args: { _user_id: string }; Returns: string }
       get_user_unit_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      same_organization: {
+        Args: { _user_id1: string; _user_id2: string }
         Returns: boolean
       }
     }

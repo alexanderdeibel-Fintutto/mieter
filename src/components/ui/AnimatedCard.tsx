@@ -29,8 +29,8 @@ export function AnimatedCard({
   return (
     <Card
       className={cn(
-        "animate-slide-up shadow-lg border transition-all duration-300",
-        hover && "hover:shadow-xl hover:-translate-y-0.5",
+        "animate-slide-up transition-all duration-300",
+        hover && "hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 active:scale-[0.98]",
         accentColor && accentBorders[accentColor],
         className
       )}
