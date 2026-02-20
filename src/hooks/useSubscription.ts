@@ -21,19 +21,19 @@ export const PLANS = {
   },
   basic: {
     name: "Basic",
-    price_monthly: 9.99,
-    price_yearly: 95.88, // 20% Rabatt
-    price_id_monthly: "price_1SsEqV52lqSgjCzeKuUQGBOE",
-    price_id_yearly: null, // Kann später hinzugefügt werden
-    product_id: null, // Will be determined from subscription
+    price_monthly: 4.99,
+    price_yearly: 47.90,
+    price_id_monthly: "price_1T0nb152lqSgjCzePj9k35h4",
+    price_id_yearly: "price_1T0nb252lqSgjCzeKthcl46U",
+    product_id: "prod_Tyl7nP8RIZYiKg",
   },
   pro: {
     name: "Pro",
-    price_monthly: 19.99,
-    price_yearly: 191.88,
-    price_id_monthly: "price_1SsEr552lqSgjCzeBvWBTzKS",
-    price_id_yearly: null,
-    product_id: null, // Will be determined from subscription
+    price_monthly: 9.99,
+    price_yearly: 95.90,
+    price_id_monthly: "price_1T0nb352lqSgjCzennX9j9dE",
+    price_id_yearly: "price_1T0nb352lqSgjCzejpncsetw",
+    product_id: "prod_Tyl7B6nLP9waBf",
   },
 } as const;
 
